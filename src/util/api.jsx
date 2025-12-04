@@ -14,7 +14,8 @@ export function createNotification(type, message, options) {
 
 export async function api(path, method, body, notification = false, headers =  { 'Content-Type': 'application/json' }) {
     try {
-        let res = await fetch(`${import.meta.env.VITE_SERVER_URL}${path}`, {
+        const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+        let res = await fetch(`${serverUrl}${path}`, {
             method,
             headers,
             body,

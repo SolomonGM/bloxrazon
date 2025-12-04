@@ -10,8 +10,8 @@ export function WebsocketProvider(props) {
 
     async function connectSocket() {
 
-        const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
-        console.log('Connecting to WebSocket:', socketUrl);
+        const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_SERVER_URL || '';
+        console.log('Connecting to WebSocket:', socketUrl || 'current domain');
         
         let tempWs = io(socketUrl, { transports: ['websocket', 'polling'], reconnection: true, reconnectionDelay: 1000, reconnectionAttempts: 10})
 
