@@ -1,0 +1,58 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+.pixel-font {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 4rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(0, 255, 231, 0.6),
+    0 0 30px rgba(255, 0, 200, 0.5),
+    0 0 40px rgba(252, 163, 30, 0.4),
+    3px 3px 0px rgba(0, 0, 0, 0.9),
+    -1px -1px 0px rgba(0, 0, 0, 0.5);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #00ffe7 0%, #ff00c8 50%, #fca31e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: pixelIntroHQ 1.2s cubic-bezier(0.23, 1, 0.32, 1) both,
+             gradientShift 3s ease-in-out infinite alternate;
+  position: relative;
+  display: inline-block;
+  padding: 20px 40px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 0 30px rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pixelIntroHQ {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.8) translateY(-30px); 
+    filter: blur(20px) brightness(2);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05) translateY(5px);
+    filter: blur(0) brightness(1.2);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Remove old confetti styles - will use canvas */

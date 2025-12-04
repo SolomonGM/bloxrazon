@@ -1,0 +1,59 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    RAKEBACK CLAIMS TABLE FIX                              ║
+║                                                                           ║
+║  Error: "Data truncated for column 'type' at row 1"                      ║
+║  Solution: Fix the 'type' column to use proper ENUM type                 ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: Start Your Backend Server                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+In your terminal, run:
+    npm run backend
+
+Or for development mode:
+    npm run backend:dev
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: Fix the Database (Choose ONE method)                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+METHOD A - Run the Node.js script (EASIEST):
+    node database/fix-rakeback-claims-type.js
+
+METHOD B - Run SQL file manually:
+    mysql -u your_user -p your_database < database/fix-rakeback-claims-type.sql
+
+METHOD C - Run SQL commands directly in MySQL:
+    ALTER TABLE rakebackClaims 
+    MODIFY COLUMN type ENUM('instant', 'daily', 'weekly', 'monthly') NOT NULL;
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ WHAT WAS FIXED                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+1. DATABASE: 
+   - Changed 'type' column from insufficient size to proper ENUM
+   - Now accepts: 'instant', 'daily', 'weekly', 'monthly'
+   - Added indexes for better performance
+
+2. FRONTEND (src/components/Rakeback/tier.jsx):
+   - Rakeback with 0 amount now stays greyed out
+   - Only claimable when: active + meets minimum + reward > 0
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ VERIFICATION                                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+After applying the fix:
+1. Restart your backend: npm run backend
+2. Test claiming a rakeback
+3. Verify no more "Data truncated" errors
+4. Check that 0-amount rakebacks appear greyed out
+
+
+Need help? Check RAKEBACK_CLAIMS_FIX.md for detailed documentation.

@@ -1,0 +1,41 @@
+const io = require('../../server');
+const { doTransaction } = require('../../../database');
+const { sendSystemMessage } = require('../functions');
+const { roundDecimal } = require('../../../utils');
+
+const amount = 500000;
+
+module.exports = {
+    name: 'pls',
+    description: 'Beg for coins',
+    async execute(socket, args) {
+
+        // Only works in BEG channel
+        if (socket.channel !== 'BEG') {
+            return sendSystemMessage(socket, 'This command only works in the Begging channel.');
+        }
+    
+        try {
+    
+            await doTransaction(async (connection, commit) => {
+
+                const [[user]] = await connection.query('SELECT id, username, balance, perms FROM users WHERE id = ? FOR UPDATE', [socket.userId]);
+
+                if (user.perms < 2) return sendSystemMessage(socket, 'No.');
+                if (user.balance > 100000) return sendSystemMessage(socket, 'No.');
+        
+                await connection.query('UPDATE users SET balance = balance + ? WHERE id = ?', [amount, user.id]);
+                await commit();
+
+                emitBalance(user.id, 'set', roundDecimal(user.balance + amount));   
+                sendSystemMessage(socket, `ok`);
+                
+            });
+    
+        } catch (e) {
+            console.error(e);
+            sendSystemMessage(socket, 'Server error.');
+        }
+        
+    },
+};
