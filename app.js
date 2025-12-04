@@ -272,6 +272,14 @@ async function start() {
     // Run coinflip migration before caching
     await updateCoinflipSchemaOnStart();
 
+    // Run Roblox account info migration
+    try {
+        const { addRobloxAccountInfo } = require('./database/add-roblox-account-info');
+        await addRobloxAccountInfo();
+    } catch (error) {
+        console.error('Roblox account info migration failed:', error.message);
+    }
+
     const promises = [
         cacheBets,
         cacheRains,
