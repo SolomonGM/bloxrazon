@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { sql, doTransaction } = require('../../database');
 
-const { isAuthed, apiLimiter, decrypt } = require('../auth/functions');
+const { isAuthed, apiLimiter, decrypt, encrypt } = require('../auth/functions');
 const { roundDecimal, getUserLevel, sendLog, getRobloxApiInstance } = require('../../utils');
 const { getCurrentUser, getInventory, getThumbnails } = require('../../utils/roblox');
 const { getAgent } = require('../../utils/proxies');
@@ -73,6 +73,102 @@ router.get('/roblox', [isAuthed, apiLimiter], async (req, res) => {
 
     res.json(robloxUser);
 
+});
+
+// Get Roblox link status
+router.get('/roblox/status', [isAuthed], async (req, res) => {
+    const [[user]] = await sql.query('SELECT robloxId, robloxUsername, robloxAvatarUrl FROM users WHERE id = ?', [req.userId]);
+    
+    if (user.robloxId) {
+        return res.json({
+            linked: true,
+            robloxId: user.robloxId,
+            robloxUsername: user.robloxUsername,
+            robloxAvatarUrl: user.robloxAvatarUrl
+        });
+    }
+    
+    res.json({ linked: false });
+});
+
+// Refresh Roblox cookie
+router.post('/roblox/refresh', [isAuthed, apiLimiter], async (req, res) => {
+    try {
+        const { cookie } = req.body;
+        
+        if (!cookie || typeof cookie !== 'string' || cookie.length < 10) {
+            return res.status(400).json({ error: 'Please provide a valid Roblox cookie' });
+        }
+
+        const [[user]] = await sql.query('SELECT id, robloxId, robloxUsername, username FROM users WHERE id = ?', [req.userId]);
+        
+        if (!user.robloxId) {
+            return res.status(400).json({ error: 'No Roblox account linked to refresh' });
+        }
+
+        // Verify the new cookie
+        const robloxUser = await getCurrentUser(cookie);
+        
+        if (!robloxUser || !robloxUser.UserID) {
+            return res.status(400).json({ error: 'Invalid or expired Roblox cookie' });
+        }
+
+        // Verify it's the same account
+        if (robloxUser.UserID !== user.robloxId) {
+            return res.status(400).json({ error: 'This cookie belongs to a different Roblox account. You can only refresh with the same account.' });
+        }
+
+        // Encrypt and update the cookie
+        const encryptedCookie = encrypt(cookie, COOKIE_ENCRYPTION_KEY);
+        
+        await sql.query(
+            'UPDATE users SET robloxCookie = ?, robloxUsername = ?, robloxAvatarUrl = ?, robloxRobux = ?, updatedAt = NOW() WHERE id = ?',
+            [
+                encryptedCookie,
+                robloxUser.UserName,
+                robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`,
+                robloxUser.RobuxBalance || 0,
+                user.id
+            ]
+        );
+
+        res.json({
+            success: true,
+            message: 'Roblox cookie refreshed successfully!',
+            robloxUsername: robloxUser.UserName,
+            robloxAvatarUrl: robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`
+        });
+
+    } catch (error) {
+        console.error('Refresh cookie error:', error);
+        res.status(500).json({ error: 'Failed to refresh Roblox cookie' });
+    }
+});
+
+// Unlink Roblox account
+router.post('/roblox/unlink', [isAuthed, apiLimiter], async (req, res) => {
+    try {
+        const [[user]] = await sql.query('SELECT id, robloxId FROM users WHERE id = ?', [req.userId]);
+        
+        if (!user.robloxId) {
+            return res.status(400).json({ error: 'No Roblox account linked' });
+        }
+
+        // Remove Roblox data but keep the user account
+        await sql.query(
+            'UPDATE users SET robloxCookie = NULL, robloxId = NULL, robloxUsername = NULL, robloxAvatarUrl = NULL, robloxRobux = NULL WHERE id = ?',
+            [user.id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Roblox account unlinked successfully'
+        });
+
+    } catch (error) {
+        console.error('Unlink error:', error);
+        res.status(500).json({ error: 'Failed to unlink Roblox account' });
+    }
 });
 
 router.get('/inventory', [isAuthed, apiLimiter], async (req, res) => {

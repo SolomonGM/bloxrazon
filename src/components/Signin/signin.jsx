@@ -268,7 +268,7 @@ function SignIn(props) {
                         {/* SIGN UP MODE - STEP 2: ROBLOX COOKIE ENTRY */}
                         {authMode() === 'signup' && registrationStep() === 2 && (
                             <>
-                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-bottom': '10px' }}>
+                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-top': '20px', 'margin-bottom': '10px' }}>
                                     <p class='label' style={{ margin: 0 }}>ENTER YOUR .ROBLOSECURITY COOKIE</p>
                                     <div class='info-icon-wrapper' style={{ position: 'relative', display: 'inline-block' }}>
                                         <svg width='16' height='16' viewBox='0 0 16 16' fill='none' style={{ cursor: 'help', 'vertical-align': 'middle' }}>
@@ -283,9 +283,9 @@ function SignIn(props) {
                                         </div>
                                     </div>
                                 </div>
-                                <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.verify-cookie').click()}/>
+                                <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.verify-cookie').click()} style={{ 'margin-bottom': '20px' }}/>
                                 
-                                <button class='bevel-gold verify-cookie' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={async () => {
+                                <button class='bevel-gold verify-cookie' style={{ width: '100%', padding: '18px', 'font-size': '18px', 'font-weight': 'bold', 'margin-bottom': '15px' }} onClick={async () => {
                                     if (isLoggingIn()) return
                                     if (!security()) return createNotification('error', 'Please enter your Roblox cookie')
                                     
@@ -311,7 +311,7 @@ function SignIn(props) {
                                     }
                                 }}>VERIFY COOKIE</button>
 
-                                <button class='bevel' style={{ 'margin-top': '15px', padding: '12px', 'font-size': '16px' }} onClick={() => {
+                                <button class='bevel' style={{ width: '100%', padding: '14px', 'font-size': '16px' }} onClick={() => {
                                     setRegistrationStep(1)
                                     setSecurity('')
                                 }}>BACK</button>

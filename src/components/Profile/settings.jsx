@@ -12,6 +12,12 @@ function Settings(props) {
     const [linked, setLinked] = createSignal(false)
     const [sound, setSound] = createSignal(localStorage.getItem('sound') || 100)
     const [user, { mutateUser }] = useUser()
+    
+    // Roblox link state
+    const [robloxData, setRobloxData] = createSignal(null)
+    const [robloxLoading, setRobloxLoading] = createSignal(true)
+    const [showRefreshModal, setShowRefreshModal] = createSignal(false)
+    const [refreshCookie, setRefreshCookie] = createSignal('')
 
     createEffect(() => {
         if (!localStorage.getItem('sound')) {
@@ -26,7 +32,21 @@ function Settings(props) {
         if (sound()) {
             createTrail()
         }
+
+        // Fetch Roblox link status
+        fetchRobloxStatus()
     })
+
+    async function fetchRobloxStatus() {
+        try {
+            const res = await authedAPI('/user/roblox/status', 'GET', null)
+            setRobloxData(res)
+        } catch (error) {
+            console.error('Failed to fetch Roblox status:', error)
+        } finally {
+            setRobloxLoading(false)
+        }
+    }
 
     async function fetchDiscord() {
         try {
@@ -137,7 +157,121 @@ function Settings(props) {
                         }}>{linked() ? 'UNLINK' : 'LINK'}</button>
                     </Show>
                 </div>
+
+                <div class='table-data'>
+                    <div class='table-column'>
+                        <p>LINK ROBLOX</p>
+                    </div>
+
+                    <Show when={!robloxLoading()} fallback={<Loader type='small'/>}>
+                        <div style={{ display: 'flex', 'align-items': 'center', gap: '10px' }}>
+                            <Show when={robloxData()?.linked}>
+                                <div style={{ display: 'flex', 'align-items': 'center', gap: '10px', 'margin-right': '10px' }}>
+                                    <img 
+                                        src={robloxData()?.robloxAvatarUrl} 
+                                        alt="Roblox Avatar" 
+                                        style={{ width: '32px', height: '32px', 'border-radius': '50%', border: '2px solid #FFD700' }}
+                                    />
+                                    <span style={{ color: '#FFD700', 'font-weight': 'bold' }}>
+                                        {robloxData()?.robloxUsername}
+                                    </span>
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M13 8L8 3L3 8" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 3V13" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </Show>
+                            
+                            <Show when={robloxData()?.linked}>
+                                <button class='bevel' style={{ padding: '8px 16px', 'font-size': '14px', 'margin-right': '8px' }} onClick={() => {
+                                    setShowRefreshModal(true)
+                                    setRefreshCookie('')
+                                }}>REFRESH COOKIE</button>
+                            </Show>
+
+                            <button 
+                                className={robloxData()?.linked ? 'unlink' : 'bevel-gold link'} 
+                                onClick={async () => {
+                                    if (robloxData()?.linked) {
+                                        // Unlink
+                                        const res = await authedAPI('/user/roblox/unlink', 'POST', null, true)
+                                        if (res.success) {
+                                            createNotification('success', 'Successfully unlinked your Roblox account')
+                                            setRobloxData({ linked: false })
+                                        }
+                                    } else {
+                                        createNotification('error', 'Roblox linking is required during registration')
+                                    }
+                                }}
+                            >
+                                {robloxData()?.linked ? 'UNLINK' : 'LINK'}
+                            </button>
+                        </div>
+                    </Show>
+                </div>
             </div>
+
+            {/* Refresh Cookie Modal */}
+            <Show when={showRefreshModal()}>
+                <div class='modal-backdrop' onClick={() => setShowRefreshModal(false)}>
+                    <div class='refresh-modal' onClick={(e) => e.stopPropagation()}>
+                        <div class='modal-header'>
+                            <h2>Refresh Roblox Cookie</h2>
+                            <button class='close-btn' onClick={() => setShowRefreshModal(false)}>×</button>
+                        </div>
+                        
+                        <div class='modal-body'>
+                            <p class='modal-description'>
+                                Enter your new .ROBLOSECURITY cookie to refresh your account access.
+                                The cookie must belong to the same Roblox account: <span class='highlight'>{robloxData()?.robloxUsername}</span>
+                            </p>
+                            
+                            <div class='cookie-input-wrapper'>
+                                <label>New Cookie</label>
+                                <input 
+                                    type='text' 
+                                    class='cookie-input'
+                                    placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...'
+                                    value={refreshCookie()}
+                                    onInput={(e) => setRefreshCookie(e.target.value)}
+                                />
+                            </div>
+
+                            <div class='modal-actions'>
+                                <button class='bevel-gold' onClick={async () => {
+                                    if (!refreshCookie()) {
+                                        createNotification('error', 'Please enter your cookie')
+                                        return
+                                    }
+
+                                    const res = await authedAPI('/user/roblox/refresh', 'POST', JSON.stringify({
+                                        cookie: refreshCookie()
+                                    }), true)
+
+                                    if (res.success) {
+                                        createNotification('success', res.message || 'Cookie refreshed successfully!')
+                                        setRobloxData({
+                                            linked: true,
+                                            robloxId: robloxData().robloxId,
+                                            robloxUsername: res.robloxUsername,
+                                            robloxAvatarUrl: res.robloxAvatarUrl
+                                        })
+                                        setShowRefreshModal(false)
+                                        setRefreshCookie('')
+                                    } else if (res.error) {
+                                        createNotification('error', res.error)
+                                    }
+                                }}>REFRESH</button>
+                                
+                                <button class='bevel' onClick={() => {
+                                    setShowRefreshModal(false)
+                                    setRefreshCookie('')
+                                }}>CANCEL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Show>
 
             <style jsx>{`
               .settings-container {
@@ -268,6 +402,120 @@ function Settings(props) {
                 .settings-container {
                   padding-bottom: 90px;
                 }
+              }
+
+              .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+              }
+
+              .refresh-modal {
+                background: #1E1B3C;
+                border-radius: 8px;
+                border: 2px solid #5A5499;
+                max-width: 600px;
+                width: 90%;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+              }
+
+              .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 25px;
+                border-bottom: 1px solid #5A5499;
+              }
+
+              .modal-header h2 {
+                color: #FFD700;
+                font-size: 20px;
+                font-weight: 700;
+                margin: 0;
+              }
+
+              .close-btn {
+                background: transparent;
+                border: none;
+                color: #ADA3EF;
+                font-size: 32px;
+                cursor: pointer;
+                line-height: 1;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+
+              .close-btn:hover {
+                color: #FFD700;
+              }
+
+              .modal-body {
+                padding: 25px;
+              }
+
+              .modal-description {
+                color: #ADA3EF;
+                font-size: 14px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+              }
+
+              .highlight {
+                color: #FFD700;
+                font-weight: 700;
+              }
+
+              .cookie-input-wrapper {
+                margin-bottom: 25px;
+              }
+
+              .cookie-input-wrapper label {
+                display: block;
+                color: #ADA3EF;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              }
+
+              .cookie-input {
+                width: 100%;
+                padding: 12px;
+                background: rgba(90, 84, 153, 0.2);
+                border: 1px solid #5A5499;
+                border-radius: 4px;
+                color: #fff;
+                font-size: 14px;
+                font-family: monospace;
+                box-sizing: border-box;
+              }
+
+              .cookie-input:focus {
+                outline: none;
+                border-color: #FFD700;
+              }
+
+              .modal-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+              }
+
+              .modal-actions button {
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 700;
               }
             `}</style>
         </>
