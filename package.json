@@ -1,6 +1,6 @@
 {
   "name": "bloxrazon",
-  "version": "0.0.0",
+  "version": "1.0.1",
   "description": "BloxRazon - Win Robux On The Best Roblox Gambling Site",
   "scripts": {
     "start": "node app.js",
