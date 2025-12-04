@@ -1,25 +1,67 @@
 const mysql = require('mysql2/promise');
 
-const connection = {
-    host: process.env.SQL_HOST || 'localhost',
-    port: process.env.SQL_PORT || 3306,
-    user: process.env.SQL_USER,
-    database: process.env.SQL_DB,
-    password: process.env.SQL_PASS,
-    ssl: process.env.SQL_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    typeCast: function (field, next) {
-        if (field.type == "NEWDECIMAL") {
-            const value = field.string();
-            return (value === null) ? null : Number(value);
+// Parse Railway's MYSQL_URL if available, otherwise use individual env vars
+let connection;
+if (process.env.MYSQL_URL) {
+    const url = new URL(process.env.MYSQL_URL);
+    connection = {
+        host: url.hostname,
+        port: url.port || 3306,
+        user: url.username,
+        database: url.pathname.slice(1), // Remove leading slash
+        password: url.password,
+        ssl: { rejectUnauthorized: false },
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        typeCast: function (field, next) {
+            if (field.type == "NEWDECIMAL") {
+                const value = field.string();
+                return (value === null) ? null : Number(value);
+            }
+            return next();
         }
-        return next();
-    }
-};
+    };
+} else {
+    connection = {
+        host: process.env.SQL_HOST || 'localhost',
+        port: process.env.SQL_PORT || 3306,
+        user: process.env.SQL_USER,
+        database: process.env.SQL_DB,
+        password: process.env.SQL_PASS,
+        ssl: process.env.SQL_SSL === 'true' ? { rejectUnauthorized: false } : false,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        typeCast: function (field, next) {
+            if (field.type == "NEWDECIMAL") {
+                const value = field.string();
+                return (value === null) ? null : Number(value);
+            }
+            return next();
+        }
+    };
+}
 
 const pool = mysql.createPool(connection);
+
+// Test database connection on startup
+(async () => {
+    try {
+        const conn = await pool.getConnection();
+        console.log('✓ Database connected successfully');
+        conn.release();
+    } catch (err) {
+        console.error('✗ Database connection failed:', err.message);
+        console.error('Connection config:', {
+            host: connection.host,
+            port: connection.port,
+            user: connection.user,
+            database: connection.database,
+            ssl: !!connection.ssl
+        });
+    }
+})();
 
 // pool.on('connection', function (connection) {
 //     console.log('Connection established');

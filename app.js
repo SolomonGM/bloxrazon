@@ -1,4 +1,9 @@
-require('dotenv').config({ path: '.env.production' });
+// Load .env file if it exists (for local development)
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config({ path: '.env.production' });
+} else {
+    require('dotenv').config();
+}
 const express = require('express');
 const nocache = require("nocache");
 const morgan = require('morgan');
