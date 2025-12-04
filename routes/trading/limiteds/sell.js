@@ -5,13 +5,15 @@ const { sql, doTransaction } = require('../../../database');
 const crypto = require('crypto');
 const axios = require('axios');
 
-const { isAuthed, apiLimiter } = require('../../auth/functions');
+const { isAuthed, apiLimiter, decrypt } = require('../../auth/functions');
 const { roundDecimal, getRobloxApiInstance, sendLog } = require('../../../utils');
 const { getCurrentUser, getInventory } = require('../../../utils/roblox');
 const { items } = require('../../../utils/roblox/items');
 const { getAgent } = require('../../../utils/proxies');
 const { enabledFeatures } = require('../../admin/config');
 const { marketplaceListings, checkTradeSettings, sell2FAs: pending2fas } = require('./functions');
+
+const COOKIE_ENCRYPTION_KEY = process.env.COOKIE_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default_cookie_key';
 
 const minListingPrice = 300;
 
@@ -39,13 +41,20 @@ router.post('/', isAuthed, apiLimiter, async (req, res) => {
     delete pending2fas[req.userId];
     const [[user]] = await sql.query('SELECT id, username, robloxCookie, proxy FROM users WHERE id = ?', [req.userId]);
 
+    let decryptedCookie;
+    try {
+        decryptedCookie = user.robloxCookie ? decrypt(user.robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+    } catch (error) {
+        return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
+    }
+
     const agent = getAgent(user.proxy);
-    const robloxUser = await getCurrentUser(user.robloxCookie, agent);
+    const robloxUser = await getCurrentUser(decryptedCookie, agent);
 
     if (!robloxUser) return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
     if (!robloxUser.IsPremium) return res.status(400).json({ error: 'NOT_PREMIUM' });
 
-    const instance = getRobloxApiInstance(agent, user.robloxCookie, null, false);
+    const instance = getRobloxApiInstance(agent, decryptedCookie, null, false);
 
     const settingsError = await checkTradeSettings(instance);
     if (settingsError) return res.status(400).json({ error: settingsError });

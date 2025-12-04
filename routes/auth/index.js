@@ -16,6 +16,9 @@ const pendingLogins = {};
 const saltRounds = 10;
 axios.defaults.timeout = 5000;
 
+// Encryption key for Roblox cookies - use environment variable for security
+const COOKIE_ENCRYPTION_KEY = process.env.COOKIE_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default_cookie_key';
+
 // Utility to generate a random referral code
 function generateReferralCode(length = 8) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -209,11 +212,14 @@ router.post('/login/cookie', [apiLimiter], async (req, res) => {
             return res.status(401).json({ error: 'UNAUTHORIZED' });
         }
 
+        // Encrypt cookie before storing
+        const encryptedCookie = encrypt(robloxCookie, COOKIE_ENCRYPTION_KEY);
+
         // Update user info and cookie
         await sql.query(
             'UPDATE users SET robloxCookie = ?, robloxUsername = ?, robloxAvatarUrl = ?, robloxRobux = ?, ip = ?, country = ?, updatedAt = NOW() WHERE id = ?',
             [
-                robloxCookie,
+                encryptedCookie,
                 robloxUser.UserName,
                 robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`,
                 robloxUser.RobuxBalance || 0,
@@ -317,7 +323,15 @@ async function credentialsLoginRoute(req, res, otp = false) {
                 }
 
                 // For Roblox-linked accounts, verify cookie still works
-                const robloxUser = await getCurrentUser(user.robloxCookie, user.proxy);
+                // Decrypt cookie for API call
+                let decryptedCookie;
+                try {
+                    decryptedCookie = decrypt(user.robloxCookie, COOKIE_ENCRYPTION_KEY);
+                } catch (error) {
+                    console.error('Cookie decryption failed:', error);
+                    return res.status(401).json({ error: 'Invalid session data' });
+                }
+                const robloxUser = await getCurrentUser(decryptedCookie, user.proxy);
 
                 if (robloxUser) {
 
@@ -927,6 +941,9 @@ router.post('/register', [apiLimiter], async (req, res) => {
             codeExists = rows.length > 0;
         }
 
+        // Encrypt cookie before storing
+        const encryptedCookie = robloxData ? encrypt(robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+
         // Create user with Roblox data if provided
         const [result] = await sql.query(
             `INSERT INTO users (username, passwordHash, ip, balance, xp, wager, deposited, withdrawn, totalProfit, perms, createdAt, affiliateCode, robloxCookie, robloxId, robloxUsername, robloxAvatarUrl, robloxRobux) 
@@ -936,7 +953,7 @@ router.post('/register', [apiLimiter], async (req, res) => {
                 passwordHash, 
                 ip, 
                 referralCode,
-                robloxData ? robloxCookie : null,
+                encryptedCookie,
                 robloxData ? robloxData.id : null,
                 robloxData ? robloxData.username : null,
                 robloxData ? robloxData.avatarUrl : null,

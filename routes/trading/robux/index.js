@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const { isAuthed, apiLimiter } = require('../../auth/functions');
+const { isAuthed, apiLimiter, decrypt } = require('../../auth/functions');
 const { roundDecimal, sendLog } = require('../../../utils');
 const { getCurrentUser } = require('../../../utils/roblox');
 const { sql, doTransaction } = require('../../../database');
 const { enabledFeatures, checkAccountLock } = require('../../admin/config');
 const { robuxExchange, processQueue } = require('./functions');
+
+const COOKIE_ENCRYPTION_KEY = process.env.COOKIE_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default_cookie_key';
 
 const io = require('../../../socketio/server');
 
@@ -22,7 +24,14 @@ router.post('/deposit', [isAuthed, apiLimiter], async (req, res) => {
 
     const [[user]] = await sql.query('SELECT id, username, robloxCookie, proxy, balance FROM users WHERE id = ?', [req.userId]);
 
-    const robloxUser = await getCurrentUser(user.robloxCookie, user.proxy);
+    let decryptedCookie;
+    try {
+        decryptedCookie = user.robloxCookie ? decrypt(user.robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+    } catch (error) {
+        return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
+    }
+
+    const robloxUser = await getCurrentUser(decryptedCookie, user.proxy);
     if (!robloxUser) return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
 
     const [[{ pendingWithdraw }]] = await sql.query('SELECT SUM(totalAmount) as pendingWithdraw FROM robuxExchanges WHERE userId = ? AND operation = ? AND status = ?', [user.id, 'deposit', 'pending']);

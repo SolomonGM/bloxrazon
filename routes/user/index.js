@@ -3,13 +3,15 @@ const router = express.Router();
 
 const { sql, doTransaction } = require('../../database');
 
-const { isAuthed, apiLimiter } = require('../auth/functions');
+const { isAuthed, apiLimiter, decrypt } = require('../auth/functions');
 const { roundDecimal, getUserLevel, sendLog, getRobloxApiInstance } = require('../../utils');
 const { getCurrentUser, getInventory, getThumbnails } = require('../../utils/roblox');
 const { getAgent } = require('../../utils/proxies');
 const io = require('../../socketio/server');
 const { enabledFeatures, checkAccountLock } = require('../admin/config');
 const { getUserRakebacks } = require('./rakeback/functions');
+
+const COOKIE_ENCRYPTION_KEY = process.env.COOKIE_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default_cookie_key';
 
 const affiliateRoute = require('./affiliate');
 const rakebackRoute = require('./rakeback');
@@ -60,7 +62,13 @@ router.post('/mentions', isAuthed, async (req, res) => {
 router.get('/roblox', [isAuthed, apiLimiter], async (req, res) => {
 
     const [[user]] = await sql.query('SELECT id, robloxCookie, proxy FROM users WHERE id = ?', [req.userId]);
-    const robloxUser = await getCurrentUser(user.robloxCookie, user.proxy);
+    let decryptedCookie;
+    try {
+        decryptedCookie = user.robloxCookie ? decrypt(user.robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+    } catch (error) {
+        return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
+    }
+    const robloxUser = await getCurrentUser(decryptedCookie, user.proxy);
     if (!robloxUser) return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
 
     res.json(robloxUser);
@@ -71,8 +79,15 @@ router.get('/inventory', [isAuthed, apiLimiter], async (req, res) => {
 
     const [[user]] = await sql.query('SELECT id, robloxCookie, proxy FROM users WHERE id = ?', [req.userId]);
 
+    let decryptedCookie;
+    try {
+        decryptedCookie = user.robloxCookie ? decrypt(user.robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+    } catch (error) {
+        return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
+    }
+
     const agent = getAgent(user.proxy);
-    const instance = getRobloxApiInstance(agent, user.robloxCookie);
+    const instance = getRobloxApiInstance(agent, decryptedCookie);
     
     let inventory = await getInventory(user.id, instance);
     if (!inventory) return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });

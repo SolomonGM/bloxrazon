@@ -190,48 +190,48 @@ function SignIn(props) {
 
                         <div class='bar'/>
 
-                        {/* Show mode selector only for signin or step 1 of signup */}
-                        {(authMode() === 'signin' || (authMode() === 'signup' && registrationStep() === 1)) && (
-                            <div class='options'>
-                                <button class={'bevel option ' + (mode() === 0 ? 'active' : '')} onClick={() => setMode(0)}>CREDENTIALS</button>
-                                <button class={'bevel option ' + (mode() === 1 ? 'active' : '')} onClick={() => setMode(1)}>.ROBLOSECURITY</button>
-                            </div>
-                        )}
 
                         {/* SIGN IN MODE */}
                         {authMode() === 'signin' && (
                             <>
-                                {mode() === 0 ? (
-                                  <>
-                                      <p class='label'>USERNAME</p>
-                                      <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+                                <p class='label'>USERNAME</p>
+                                <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
 
-                                      <p class='label'>PASSWORD</p>
-                                      <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
-                                  </>
-                                ) : (
-                                    <>
-                                        <p class='label'>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
-                                        <input type='text' placeholder='Enter your cookie' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
-                                    </>
-                                )}
+                                <p class='label'>PASSWORD</p>
+                                <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
 
-                                <button class='bevel-gold signin' onClick={async () => {
+                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-top': '10px' }}>
+                                    <p class='label' style={{ margin: 0 }}>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
+                                    <div class='info-icon-wrapper' style={{ position: 'relative', display: 'inline-block' }}>
+                                        <svg width='16' height='16' viewBox='0 0 16 16' fill='none' style={{ cursor: 'help', 'vertical-align': 'middle' }}>
+                                            <circle cx='8' cy='8' r='7' stroke='#FFD700' stroke-width='1.5' fill='none'/>
+                                            <text x='8' y='11.5' text-anchor='middle' fill='#FFD700' font-size='10' font-weight='bold'>i</text>
+                                        </svg>
+                                        <div class='cookie-tooltip'>
+                                            🔒 <strong>Your cookie is secure!</strong><br/>
+                                            We encrypt all Roblox cookies using AES-256 encryption before storing them in our database.<br/><br/>
+                                            This means <strong>NO ONE</strong> - not even site owners - can read your cookie in plain text.<br/><br/>
+                                            Your cookie is only decrypted temporarily when making authorized API calls on your behalf.
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+
+                                <button class='bevel-gold signin' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={async () => {
                                     if (isLoggingIn()) return
 
                                     let data
                                     setIsLoggingIn(true)
 
-                                    if (mode() === 0) {
-                                        data = await api('/auth/login', 'POST', JSON.stringify({
-                                            username: username(),
-                                            password: password()
-                                        }), true)
-                                    } else if (mode() === 1) {
-                                        data = await api('/auth/login/cookie', 'POST', JSON.stringify({
-                                            cookie: security(),
-                                        }), true)
+                                    if (!security()) {
+                                        setIsLoggingIn(false)
+                                        return createNotification('error', 'Please enter your Roblox cookie')
                                     }
+
+                                    data = await api('/auth/login/cookie', 'POST', JSON.stringify({
+                                        cookie: security(),
+                                    }), true)
+
                                     handleLoginData(data)
                                 }}>SIGN IN</button>
                             </>
@@ -240,60 +240,52 @@ function SignIn(props) {
                         {/* SIGN UP MODE - STEP 1: CREDENTIALS */}
                         {authMode() === 'signup' && registrationStep() === 1 && (
                             <>
-                                {mode() === 0 ? (
-                                  <>
-                                      <p class='label'>USERNAME</p>
-                                      <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
+                                <p class='label'>USERNAME</p>
+                                <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
 
-                                      <p class='label'>PASSWORD</p>
-                                      <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
-                                      
-                                      <p class='label'>CONFIRM PASSWORD</p>
-                                      <input type='password' placeholder='Confirm your password' class='credentials' value={confirmPassword()} onChange={(e) => setConfirmPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
+                                <p class='label'>PASSWORD</p>
+                                <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
+                                
+                                <p class='label'>CONFIRM PASSWORD</p>
+                                <input type='password' placeholder='Confirm your password' class='credentials' value={confirmPassword()} onChange={(e) => setConfirmPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.next-step').click()}/>
 
-                                      <div class='tos'>
-                                          <Toggle active={agree()} toggle={() => setAgree(!agree())}/>
-                                          <p>By checking this box you agree to our <A href='/docs/tos' class='white bold strip'>Terms & Conditions</A></p>
-                                      </div>
+                                <div class='tos'>
+                                    <Toggle active={agree()} toggle={() => setAgree(!agree())}/>
+                                    <p>By checking this box you agree to our <A href='/docs/tos' class='white bold strip'>Terms & Conditions</A></p>
+                                </div>
 
-                                      <button class='bevel-gold next-step' onClick={() => {
-                                          if (!agree()) return createNotification('error', 'You must accept our Terms and Conditions and Privacy Policy')
-                                          if (!username() || !password() || !confirmPassword()) {
-                                              return createNotification('error', 'Please fill in all fields')
-                                          }
-                                          if (password() !== confirmPassword()) {
-                                              return createNotification('error', 'Passwords do not match')
-                                          }
-                                          setRegistrationStep(2)
-                                      }}>NEXT: CONNECT ROBLOX</button>
-                                  </>
-                                ) : (
-                                    <>
-                                        <p class='label'>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
-                                        <input type='text' placeholder='Enter your cookie' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
-
-                                        <button class='bevel-gold signin' onClick={async () => {
-                                            if (isLoggingIn()) return
-                                            setIsLoggingIn(true)
-                                            
-                                            const data = await api('/auth/login/cookie', 'POST', JSON.stringify({
-                                                cookie: security(),
-                                            }), true)
-                                            
-                                            handleLoginData(data)
-                                        }}>SIGN UP WITH COOKIE</button>
-                                    </>
-                                )}
-                            </>
-                        )}
+                                <button class='bevel-gold next-step' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={() => {
+                                    if (!agree()) return createNotification('error', 'You must accept our Terms and Conditions and Privacy Policy')
+                                    if (!username() || !password() || !confirmPassword()) {
+                                        return createNotification('error', 'Please fill in all fields')
+                                    }
+                                    if (password() !== confirmPassword()) {
+                                        return createNotification('error', 'Passwords do not match')
+                                    }
+                                    setRegistrationStep(2)
+                                }}>NEXT: CONNECT ROBLOX</button>
 
                         {/* SIGN UP MODE - STEP 2: ROBLOX COOKIE ENTRY */}
-                        {authMode() === 'signup' && registrationStep() === 2 && mode() === 0 && (
+                        {authMode() === 'signup' && registrationStep() === 2 && (
                             <>
-                                <p class='label'>ENTER YOUR .ROBLOSECURITY COOKIE</p>
+                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-bottom': '10px' }}>
+                                    <p class='label' style={{ margin: 0 }}>ENTER YOUR .ROBLOSECURITY COOKIE</p>
+                                    <div class='info-icon-wrapper' style={{ position: 'relative', display: 'inline-block' }}>
+                                        <svg width='16' height='16' viewBox='0 0 16 16' fill='none' style={{ cursor: 'help', 'vertical-align': 'middle' }}>
+                                            <circle cx='8' cy='8' r='7' stroke='#FFD700' stroke-width='1.5' fill='none'/>
+                                            <text x='8' y='11.5' text-anchor='middle' fill='#FFD700' font-size='10' font-weight='bold'>i</text>
+                                        </svg>
+                                        <div class='cookie-tooltip'>
+                                            🔒 <strong>Your cookie is secure!</strong><br/>
+                                            We encrypt all Roblox cookies using AES-256 encryption before storing them in our database.<br/><br/>
+                                            This means <strong>NO ONE</strong> - not even site owners - can read your cookie in plain text.<br/><br/>
+                                            Your cookie is only decrypted temporarily when making authorized API calls on your behalf.
+                                        </div>
+                                    </div>
+                                </div>
                                 <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.verify-cookie').click()}/>
                                 
-                                <button class='bevel-gold verify-cookie' onClick={async () => {
+                                <button class='bevel-gold verify-cookie' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={async () => {
                                     if (isLoggingIn()) return
                                     if (!security()) return createNotification('error', 'Please enter your Roblox cookie')
                                     
@@ -305,8 +297,13 @@ function SignIn(props) {
                                     
                                     setIsLoggingIn(false)
                                     
-                                    if (data && data.success) {
-                                        setRobloxVerifiedData(data.user)
+                                    if (data && data.valid) {
+                                        setRobloxVerifiedData({
+                                            id: data.robloxId,
+                                            username: data.robloxUsername,
+                                            avatarUrl: data.avatarUrl,
+                                            robux: data.robux
+                                        })
                                         setRegistrationStep(3)
                                         createNotification('success', 'Roblox account verified!')
                                     } else if (data && data.error) {
@@ -314,7 +311,7 @@ function SignIn(props) {
                                     }
                                 }}>VERIFY COOKIE</button>
 
-                                <button class='bevel' style={{ 'margin-top': '10px' }} onClick={() => {
+                                <button class='bevel' style={{ 'margin-top': '15px', padding: '12px', 'font-size': '16px' }} onClick={() => {
                                     setRegistrationStep(1)
                                     setSecurity('')
                                 }}>BACK</button>
@@ -322,7 +319,7 @@ function SignIn(props) {
                         )}
 
                         {/* SIGN UP MODE - STEP 3: VERIFY IDENTITY */}
-                        {authMode() === 'signup' && registrationStep() === 3 && mode() === 0 && robloxVerifiedData() && (
+                        {authMode() === 'signup' && registrationStep() === 3 && robloxVerifiedData() && (
                             <>
                                 <div style={{ 
                                     display: 'flex', 
@@ -353,7 +350,7 @@ function SignIn(props) {
 
                                 <h3 style={{ 'text-align': 'center', color: '#fff', margin: '20px 0' }}>Is this you?</h3>
 
-                                <button class='bevel-gold' onClick={async () => {
+                                <button class='bevel-gold' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '10px' }} onClick={async () => {
                                     if (isLoggingIn()) return
                                     setIsLoggingIn(true)
                                     
@@ -374,7 +371,7 @@ function SignIn(props) {
                                     }
                                 }}>YES, CREATE MY ACCOUNT</button>
 
-                                <button class='bevel' style={{ 'margin-top': '10px' }} onClick={() => {
+                                <button class='bevel' style={{ 'margin-top': '15px', padding: '12px', 'font-size': '16px' }} onClick={() => {
                                     setRegistrationStep(2)
                                     setSecurity('')
                                     setRobloxVerifiedData(null)
@@ -402,31 +399,19 @@ function SignIn(props) {
 
                         <div class='disclaimer'>
                             {authMode() === 'signin' ? (
-                                mode() === 0 ? (
-                                    <>Create an account to access all features of <span class='gold bold'>BloxRazon</span>. Your password is securely encrypted and never shared.</>
-                                ) : (
-                                    <>
-                                        In order for <span class='gold bold'>BloxRazon.com</span> to operate correctly, we require access to your Roblox account login cookie.
-                                        <br/><br/>
-                                        While normally asking for such would be considered malicious, we assure you that <span class='bold'>BloxRazon</span> not only will protect your security but never use it without your permission!
-                                    </>
-                                )
+                                <>
+                                    In order for <span class='gold bold'>BloxRazon.com</span> to operate correctly, we require access to your Roblox account login cookie.
+                                    <br/><br/>
+                                    Your cookie is <span class='bold'>AES-256 encrypted</span> in our database - not even site owners can read it! It's only decrypted temporarily for authorized API calls on your behalf.
+                                </>
                             ) : (
                                 registrationStep() === 1 ? (
-                                    mode() === 0 ? (
-                                        <>Join <span class='gold bold'>BloxRazon</span> today! In the next step, you'll connect your Roblox account to start playing.</>
-                                    ) : (
-                                        <>
-                                            In order for <span class='gold bold'>BloxRazon.com</span> to operate correctly, we require access to your Roblox account login cookie.
-                                            <br/><br/>
-                                            While normally asking for such would be considered malicious, we assure you that <span class='bold'>BloxRazon</span> not only will protect your security but never use it without your permission!
-                                        </>
-                                    )
+                                    <>Join <span class='gold bold'>BloxRazon</span> today! In the next step, you'll connect your Roblox account to start playing.</>
                                 ) : registrationStep() === 2 ? (
                                     <>
                                         We need to verify your Roblox account. Your <span class='gold bold'>.ROBLOSECURITY</span> cookie helps us confirm your identity and sync your account info.
                                         <br/><br/>
-                                        Your cookie is encrypted and secure - we'll never use it without your permission!
+                                        Your cookie is <span class='bold'>AES-256 encrypted</span> before storage - completely secure!
                                     </>
                                 ) : (
                                     <>
@@ -786,6 +771,52 @@ function SignIn(props) {
                   margin: unset;
                   padding: unset;
                   border: none;
+                }
+
+                .cookie-tooltip {
+                  visibility: hidden;
+                  opacity: 0;
+                  position: absolute;
+                  bottom: 125%;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background-color: rgba(30, 30, 40, 0.98);
+                  color: #fff;
+                  text-align: left;
+                  border-radius: 8px;
+                  padding: 15px;
+                  width: 320px;
+                  z-index: 1000;
+                  font-size: 13px;
+                  line-height: 1.6;
+                  border: 2px solid #FFD700;
+                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                  transition: opacity 0.3s, visibility 0.3s;
+                  pointer-events: none;
+                }
+
+                .cookie-tooltip::after {
+                  content: '';
+                  position: absolute;
+                  top: 100%;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  border-width: 8px;
+                  border-style: solid;
+                  border-color: #FFD700 transparent transparent transparent;
+                }
+
+                .info-icon-wrapper:hover .cookie-tooltip {
+                  visibility: visible;
+                  opacity: 1;
+                }
+
+                .info-icon-wrapper svg {
+                  transition: transform 0.2s;
+                }
+
+                .info-icon-wrapper:hover svg {
+                  transform: scale(1.1);
                 }
             `}</style>
         </>

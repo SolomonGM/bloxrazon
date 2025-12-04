@@ -3,12 +3,14 @@ const router = express.Router();
 
 const { sql, doTransaction } = require('../../database');
 
-const { isAuthed, apiLimiter } = require('../auth/functions');
+const { isAuthed, apiLimiter, decrypt } = require('../auth/functions');
 const { roundDecimal, getRobloxApiInstance, sendLog, formatConsoleError } = require('../../utils');
 const io = require('../../socketio/server');
 const { enabledFeatures } = require('../admin/config');
 const { getAgent } = require('../../utils/proxies');
 // const { getCurrentUser } = require('../../utils/roblox');
+
+const COOKIE_ENCRYPTION_KEY = process.env.COOKIE_ENCRYPTION_KEY || process.env.JWT_SECRET || 'default_cookie_key';
 
 const cheerio = require('cheerio');
 
@@ -125,8 +127,15 @@ router.post('/', [isAuthed, apiLimiter], async (req, res) => {
 
     const [[rbxUser]] = await sql.query('SELECT id, username, balance, robloxCookie, proxy FROM users WHERE id = ?', [req.userId]);
 
+    let decryptedCookie;
+    try {
+        decryptedCookie = rbxUser.robloxCookie ? decrypt(rbxUser.robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+    } catch (error) {
+        return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
+    }
+
     const agent = getAgent(rbxUser.proxy);
-    const instance = getRobloxApiInstance(agent, rbxUser.robloxCookie);
+    const instance = getRobloxApiInstance(agent, decryptedCookie);
 
     // const robloxUser = await getCurrentUser(user.robloxCookie, user.proxy);
     // if (!robloxUser) return res.status(401).json({ error: 'INVALID_ROBLOX_COOKIE' });
