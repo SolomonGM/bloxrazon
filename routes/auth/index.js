@@ -125,6 +125,122 @@ router.post('/login/otp', [apiLimiter], async (req, res) => {
 
 router.post('/login', [apiLimiter], (req, res) => credentialsLoginRoute(req, res));
 
+// Verify Roblox cookie endpoint
+router.post('/verify-roblox-cookie', [apiLimiter], async (req, res) => {
+    try {
+        const { robloxCookie } = req.body;
+
+        if (typeof robloxCookie !== 'string' || robloxCookie.length < 10) {
+            return res.status(400).json({ error: 'Invalid cookie format' });
+        }
+
+        const robloxUser = await getCurrentUser(robloxCookie);
+
+        if (!robloxUser || !robloxUser.UserID) {
+            return res.status(400).json({ error: 'Invalid Roblox cookie or session expired' });
+        }
+
+        // Check if already linked to another account
+        const [[existingLink]] = await sql.query('SELECT id, username FROM users WHERE robloxId = ?', [robloxUser.UserID]);
+
+        res.json({
+            valid: true,
+            robloxId: robloxUser.UserID,
+            robloxUsername: robloxUser.UserName,
+            avatarUrl: robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`,
+            robux: robloxUser.RobuxBalance || 0,
+            alreadyLinked: !!existingLink,
+            linkedUsername: existingLink ? existingLink.username : null
+        });
+
+    } catch (error) {
+        console.error('Cookie verification error:', error);
+        res.status(500).json({ error: 'Failed to verify cookie' });
+    }
+});
+
+// Login with Roblox cookie
+router.post('/login/cookie', [apiLimiter], async (req, res) => {
+    try {
+        const { robloxCookie } = req.body;
+
+        if (typeof robloxCookie !== 'string' || robloxCookie.length < 10) {
+            return res.status(400).json({ error: 'Invalid cookie format' });
+        }
+
+        // Verify the Roblox cookie is valid
+        const robloxUser = await getCurrentUser(robloxCookie);
+
+        if (!robloxUser || !robloxUser.UserID) {
+            return res.status(401).json({ error: 'Invalid or expired Roblox cookie' });
+        }
+
+        // Find user by Roblox ID
+        const [[user]] = await sql.query(
+            'SELECT id, username, robloxId, robloxUsername, perms, banned, tempBanUntil FROM users WHERE robloxId = ?',
+            [robloxUser.UserID]
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: 'No account found linked to this Roblox account' });
+        }
+
+        // Check if user is banned
+        if (user.banned) {
+            if (user.tempBanUntil && new Date(user.tempBanUntil) <= new Date()) {
+                await sql.query('UPDATE users SET banned = 0, tempBanUntil = NULL WHERE id = ?', [user.id]);
+            } else {
+                const isTempBan = user.tempBanUntil && new Date(user.tempBanUntil) > new Date();
+                const banExpiry = isTempBan ? new Date(user.tempBanUntil).toISOString() : null;
+                
+                return res.status(403).json({ 
+                    error: 'BANNED',
+                    banned: true,
+                    tempBan: isTempBan,
+                    expiresAt: banExpiry,
+                    message: isTempBan 
+                        ? `You have been temporarily banned until ${new Date(user.tempBanUntil).toLocaleString()}`
+                        : 'You have been permanently banned from this site'
+                });
+            }
+        }
+
+        if (bannedUsers.has(user.id)) {
+            return res.status(401).json({ error: 'UNAUTHORIZED' });
+        }
+
+        // Update user info and cookie
+        await sql.query(
+            'UPDATE users SET robloxCookie = ?, robloxUsername = ?, robloxAvatarUrl = ?, robloxRobux = ?, ip = ?, country = ?, updatedAt = NOW() WHERE id = ?',
+            [
+                robloxCookie,
+                robloxUser.UserName,
+                robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`,
+                robloxUser.RobuxBalance || 0,
+                req.headers['cf-connecting-ip'] || req.ip || '127.0.0.1',
+                req.headers['cf-ipcountry'] || 'US',
+                user.id
+            ]
+        );
+
+        const token = generateJwtToken(user.id);
+        res.cookie('jwt', token, { maxAge: expiresIn * 1000 });
+
+        res.json({
+            token,
+            expiresIn,
+            robloxId: user.robloxId,
+            robloxUsername: robloxUser.UserName,
+            username: user.username,
+            firstLogin: false
+        });
+
+    } catch (error) {
+        console.error('Cookie login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
+
 async function credentialsLoginRoute(req, res, otp = false) {
 
     const { username, password, email } = req.body;
@@ -748,7 +864,7 @@ async function robloxSendOtp(robloxClient, email, captchaToken = null, captchaId
 
 router.post('/register', [apiLimiter], async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, robloxCookie } = req.body;
 
         // Validation
         if (typeof username !== 'string' || username.length < 3 || username.length > 20) {
@@ -769,13 +885,38 @@ router.post('/register', [apiLimiter], async (req, res) => {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
+        // Validate Roblox cookie if provided
+        let robloxData = null;
+        if (robloxCookie && typeof robloxCookie === 'string' && robloxCookie.length > 10) {
+            try {
+                const robloxUser = await getCurrentUser(robloxCookie);
+                if (robloxUser && robloxUser.UserID) {
+                    // Check if this Roblox account is already linked
+                    const [[linkedUser]] = await sql.query('SELECT id FROM users WHERE robloxId = ?', [robloxUser.UserID]);
+                    if (linkedUser) {
+                        return res.status(400).json({ error: 'This Roblox account is already linked to another user' });
+                    }
+
+                    robloxData = {
+                        id: robloxUser.UserID,
+                        username: robloxUser.UserName,
+                        avatarUrl: robloxUser.ThumbnailUrl || `https://www.roblox.com/headshot-thumbnail/image?userId=${robloxUser.UserID}&width=150&height=150&format=png`,
+                        robux: robloxUser.RobuxBalance || 0
+                    };
+                } else {
+                    return res.status(400).json({ error: 'Invalid Roblox cookie' });
+                }
+            } catch (error) {
+                console.error('Roblox verification error:', error);
+                return res.status(400).json({ error: 'Failed to verify Roblox cookie' });
+            }
+        }
+
         // Hash password
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
         // Get IP
         const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.ip || '0.0.0.0';
-
-        // Create user
 
         // Generate a unique referral code
         let referralCode;
@@ -786,10 +927,21 @@ router.post('/register', [apiLimiter], async (req, res) => {
             codeExists = rows.length > 0;
         }
 
+        // Create user with Roblox data if provided
         const [result] = await sql.query(
-            `INSERT INTO users (username, passwordHash, ip, balance, xp, wager, deposited, withdrawn, totalProfit, perms, createdAt, affiliateCode) 
-             VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0, 0, NOW(), ?)`,
-            [username, passwordHash, ip, referralCode]
+            `INSERT INTO users (username, passwordHash, ip, balance, xp, wager, deposited, withdrawn, totalProfit, perms, createdAt, affiliateCode, robloxCookie, robloxId, robloxUsername, robloxAvatarUrl, robloxRobux) 
+             VALUES (?, ?, ?, 0, 0, 0, 0, 0, 0, 0, NOW(), ?, ?, ?, ?, ?, ?)`,
+            [
+                username, 
+                passwordHash, 
+                ip, 
+                referralCode,
+                robloxData ? robloxCookie : null,
+                robloxData ? robloxData.id : null,
+                robloxData ? robloxData.username : null,
+                robloxData ? robloxData.avatarUrl : null,
+                robloxData ? robloxData.robux : null
+            ]
         );
 
         const userId = result.insertId;
@@ -804,7 +956,8 @@ router.post('/register', [apiLimiter], async (req, res) => {
             token,
             expiresIn,
             success: true,
-            message: 'Account created successfully'
+            message: 'Account created successfully',
+            robloxLinked: !!robloxData
         });
 
     } catch (error) {
