@@ -1,6 +1,7 @@
 import {toast} from "solid-toast";
 import {errors} from "../resources/errors";
 
+// Build timestamp: 2025-12-04 - Force rebuild for Railway deployment
 export const dropdowns = []
 
 export function createNotification(type, message, options) {
