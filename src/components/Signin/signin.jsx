@@ -190,16 +190,37 @@ function SignIn(props) {
 
                         <div class='bar'/>
 
-
                         {/* SIGN IN MODE */}
                         {authMode() === 'signin' && (
                             <>
-                                <p class='label'>USERNAME</p>
-                                <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+                                {/* Login Method Toggle */}
+                                <div class='options'>
+                                    <button 
+                                        class={'option ' + (mode() === 0 ? 'active' : '')} 
+                                        onClick={() => setMode(0)}
+                                    >
+                                        CREDENTIALS
+                                    </button>
+                                    <button 
+                                        class={'option ' + (mode() === 1 ? 'active' : '')} 
+                                        onClick={() => setMode(1)}
+                                    >
+                                        COOKIE ONLY
+                                    </button>
+                                </div>
 
-                                <p class='label'>PASSWORD</p>
-                                <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+                                {/* Credentials Mode */}
+                                {mode() === 0 && (
+                                    <>
+                                        <p class='label'>USERNAME</p>
+                                        <input type='text' placeholder='Enter your username' class='credentials' value={username()} onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
 
+                                        <p class='label'>PASSWORD</p>
+                                        <input type='password' placeholder='Enter your password' class='credentials' value={password()} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+                                    </>
+                                )}
+
+                                {/* Cookie Input (shown in both modes) */}
                                 <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-top': '10px' }}>
                                     <p class='label' style={{ margin: 0 }}>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
                                     <div class='info-icon-wrapper' style={{ position: 'relative', display: 'inline-block' }}>
@@ -217,7 +238,7 @@ function SignIn(props) {
                                 </div>
                                 <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
 
-                                <button class='bevel-gold signin' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={async () => {
+                                <button class='bevel-gold signin' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px', width: '100%' }} onClick={async () => {
                                     if (isLoggingIn()) return
 
                                     let data
@@ -228,9 +249,24 @@ function SignIn(props) {
                                         return createNotification('error', 'Please enter your Roblox cookie')
                                     }
 
-                                    data = await api('/auth/login/cookie', 'POST', JSON.stringify({
-                                        cookie: security(),
-                                    }), true)
+                                    if (mode() === 0) {
+                                        // Credentials + Cookie mode
+                                        if (!username() || !password()) {
+                                            setIsLoggingIn(false)
+                                            return createNotification('error', 'Please enter username and password')
+                                        }
+
+                                        data = await api('/auth/login/credentials', 'POST', JSON.stringify({
+                                            username: username(),
+                                            password: password(),
+                                            cookie: security(),
+                                        }), true)
+                                    } else {
+                                        // Cookie only mode
+                                        data = await api('/auth/login/cookie', 'POST', JSON.stringify({
+                                            cookie: security(),
+                                        }), true)
+                                    }
 
                                     handleLoginData(data)
                                 }}>SIGN IN</button>
