@@ -1,0 +1,291 @@
+import {A} from "@solidjs/router";
+import {createSignal, Show} from "solid-js";
+
+function NavSidebar(props) {
+    const [gamesExpanded, setGamesExpanded] = createSignal(false);
+
+    return (
+        <>
+            <div class={'nav-sidebar ' + (props.active ? 'expanded' : 'collapsed')}>
+                <div class='sidebar-content'>
+                    {/* Home */}
+                    <A href='/' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 12L12 3L21 12M5 10V20C5 20.2652 5.10536 20.5196 5.29289 20.7071C5.48043 20.8946 5.73478 21 6 21H10V16C10 15.7348 10.1054 15.4804 10.2929 15.2929C10.4804 15.1054 10.7348 15 11 15H13C13.2652 15 13.5196 15.1054 13.7071 15.2929C13.8946 15.4804 14 15.7348 14 16V21H18C18.2652 21 18.5196 20.8946 18.7071 20.7071C18.8946 20.5196 19 20.2652 19 20V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Home</span>
+                        </Show>
+                    </A>
+
+                    {/* Slots */}
+                    <A href='/slots' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                                <path d="M9 3V21M15 3V21M3 9H21M3 15H21" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Slots</span>
+                        </Show>
+                    </A>
+
+                    {/* Roulette */}
+                    <A href='/roulette' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                <path d="M12 3V7M12 17V21M21 12H17M7 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Roulette</span>
+                        </Show>
+                    </A>
+
+                    {/* Jackpot */}
+                    <A href='/jackpot' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Jackpot</span>
+                        </Show>
+                    </A>
+
+                    {/* Blackjack */}
+                    <A href='/blackjack' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="7" height="10" rx="1" stroke="currentColor" stroke-width="2"/>
+                                <rect x="13" y="4" width="7" height="10" rx="1" stroke="currentColor" stroke-width="2"/>
+                                <path d="M7.5 7V11M16.5 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Blackjack</span>
+                        </Show>
+                    </A>
+
+                    {/* Crash */}
+                    <A href='/crash' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4L4 8V16L12 20L20 16V8L12 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M4 8L12 12M12 12L20 8M12 12V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Crash</span>
+                        </Show>
+                    </A>
+
+                    {/* Cases */}
+                    <A href='/cases' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 7H21M3 7L6 3H18L21 7M3 7V19C3 19.5304 3.21071 20.0391 3.58579 20.4142C3.96086 20.7893 4.46957 21 5 21H19C19.5304 21 20.0391 20.7893 20.4142 20.4142C20.7893 20.0391 21 19.5304 21 19V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 11V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Cases</span>
+                        </Show>
+                    </A>
+
+                    {/* Battles */}
+                    <A href='/battles' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Case Battles</span>
+                        </Show>
+                    </A>
+
+                    {/* Coinflip */}
+                    <A href='/coinflip' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12 3C7.03 3 3 7.03 3 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Coinflip</span>
+                        </Show>
+                    </A>
+
+                    {/* Mines */}
+                    <A href='/mines' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                <path d="M12 2V6M12 18V22M22 12H18M6 12H2M19.07 4.93L16.24 7.76M7.76 16.24L4.93 19.07M19.07 19.07L16.24 16.24M7.76 7.76L4.93 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Mines</span>
+                        </Show>
+                    </A>
+
+                    <div class='sidebar-divider'></div>
+
+                    {/* Leaderboard */}
+                    <A href='/leaderboard' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 21V13M16 21V9M12 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Leaderboard</span>
+                        </Show>
+                    </A>
+
+                    {/* Profile */}
+                    <Show when={props.user}>
+                        <A href='/profile' class='sidebar-item' activeClass='active'>
+                            <div class='icon-wrapper'>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <Show when={props.active}>
+                                <span class='label'>Profile</span>
+                            </Show>
+                        </A>
+                    </Show>
+
+                    {/* Affiliates */}
+                    <A href='/affiliates' class='sidebar-item' activeClass='active'>
+                        <div class='icon-wrapper'>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <Show when={props.active}>
+                            <span class='label'>Affiliates</span>
+                        </Show>
+                    </A>
+                </div>
+            </div>
+
+            <style jsx>{`
+              .nav-sidebar {
+                position: fixed;
+                left: 0;
+                top: 60px;
+                height: calc(100vh - 60px);
+                background: linear-gradient(180deg, #1a1625 0%, #13111d 100%);
+                border-right: 1px solid rgba(139, 92, 246, 0.1);
+                transition: width 0.3s ease;
+                z-index: 100;
+                overflow-y: auto;
+                overflow-x: hidden;
+              }
+
+              .nav-sidebar.collapsed {
+                width: 70px;
+              }
+
+              .nav-sidebar.expanded {
+                width: 240px;
+              }
+
+              .nav-sidebar::-webkit-scrollbar {
+                width: 4px;
+              }
+
+              .nav-sidebar::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+              }
+
+              .nav-sidebar::-webkit-scrollbar-thumb {
+                background: rgba(139, 92, 246, 0.3);
+                border-radius: 2px;
+              }
+
+              .sidebar-content {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                padding: 16px 8px;
+              }
+
+              .sidebar-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 14px;
+                border-radius: 8px;
+                color: #9ca3af;
+                text-decoration: none;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                white-space: nowrap;
+                position: relative;
+              }
+
+              .nav-sidebar.collapsed .sidebar-item {
+                justify-content: center;
+                padding: 12px;
+              }
+
+              .sidebar-item:hover {
+                background: rgba(139, 92, 246, 0.1);
+                color: #a78bfa;
+              }
+
+              .sidebar-item.active {
+                background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+                color: #a78bfa;
+                border-left: 3px solid #8b5cf6;
+              }
+
+              .icon-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+              }
+
+              .label {
+                font-family: 'Geogrotesque Wide', sans-serif;
+                font-weight: 600;
+                font-size: 13px;
+                letter-spacing: 0.3px;
+              }
+
+              .sidebar-divider {
+                height: 1px;
+                background: rgba(139, 92, 246, 0.1);
+                margin: 8px 0;
+              }
+
+              @media (max-width: 768px) {
+                .nav-sidebar {
+                  transform: translateX(-100%);
+                }
+                
+                .nav-sidebar.expanded {
+                  transform: translateX(0);
+                  width: 240px;
+                  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+                }
+              }
+            `}</style>
+        </>
+    );
+}
+
+export default NavSidebar;

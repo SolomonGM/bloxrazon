@@ -2,6 +2,8 @@ import {Routes, Route, useSearchParams, useLocation} from '@solidjs/router'
 import {createEffect, createSignal, ErrorBoundary, lazy, Suspense} from "solid-js";
 import {useUser} from "./contexts/usercontextprovider";
 import Sidebar from "./components/SideBar/sidebar";
+import NavSidebar from "./components/NavBar/navsidebar";
+import NavSidebar from "./components/NavBar/navsidebar";
 import {authedAPI, closeDropdowns, createNotification} from "./util/api";
 import Navbar from "./components/NavBar/navbar";
 import {Toaster} from "solid-toast";
@@ -78,6 +80,8 @@ function App() {
   const [ws] = useWebsocket()
   const [chat, setChat] = createSignal(false)
   const [rakeback, setRakeback] = createSignal(false)
+  const [navSidebarOpen, setNavSidebarOpen] = createSignal(true)
+  const [navSidebarOpen, setNavSidebarOpen] = createSignal(true)
 
   // Mutual exclusivity between chat and rakeback with proper close handling
   const toggleChat = (value) => {
@@ -229,8 +233,9 @@ function App() {
               )
             }}>
             <div class='app' onClick={() => closeDropdowns()}>
-              <div class='center' ref={pageContent}>
-                <Navbar user={user()} chat={chat()} setChat={toggleChat} rakeback={rakeback()} setRakeback={toggleRakeback}/>
+              <NavSidebar active={navSidebarOpen()} user={user()}/>
+              <div class={'center ' + (navSidebarOpen() ? 'sidebar-open' : 'sidebar-closed')} ref={pageContent}>
+                <Navbar user={user()} chat={chat()} setChat={toggleChat} rakeback={rakeback()} setRakeback={toggleRakeback} navSidebarOpen={navSidebarOpen()} setNavSidebarOpen={setNavSidebarOpen}/>
 
                 <div class='content'>
                   <Routes>
@@ -492,6 +497,17 @@ function App() {
           position: relative;
           overflow: auto;
           scrollbar-color: transparent transparent;
+          transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        .center.sidebar-open {
+          margin-left: 240px;
+          width: calc(100% - 240px);
+        }
+
+        .center.sidebar-closed {
+          margin-left: 70px;
+          width: calc(100% - 70px);
         }
 
         .center::-webkit-scrollbar {
@@ -537,6 +553,14 @@ function App() {
         @media only screen and (max-width: 1000px) {
           .center {
             padding-bottom: 50px;
+          }
+        }
+
+        @media only screen and (max-width: 768px) {
+          .center.sidebar-open,
+          .center.sidebar-closed {
+            margin-left: 0;
+            width: 100%;
           }
         }
       `}</style>
