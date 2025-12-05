@@ -249,7 +249,7 @@ async function updateCoinflipSchemaOnStart() {
         const [bots] = await sql.query(`SELECT id, username FROM users WHERE role = 'BOT' LIMIT 1`);
         if (bots.length === 0) {
             console.log('[MIGRATION] Creating BOT user for coinflip...');
-            await sql.query(`INSERT INTO users (username, role, balance, xp, anon) VALUES ('CoinflipBot', 'BOT', 0, 0, 0)`);
+            await sql.query(`INSERT INTO users (username, role, balance, xp, anon) VALUES ('CoinflipBOT', 'BOT', 0, 0, 0)`);
             console.log('[MIGRATION] ✓ BOT user created');
         } else {
             console.log('[MIGRATION] ✓ BOT user exists:', bots[0].username);

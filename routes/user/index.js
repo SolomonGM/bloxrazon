@@ -295,6 +295,12 @@ router.get('/:id/img', async (req, res) => {
 
     if (botImgs[userId]) return res.redirect(process.env.BASE_URL + botImgs[userId]);
 
+    // Check if user is a bot by querying database
+    const [[user]] = await sql.query('SELECT role FROM users WHERE id = ?', [userId]);
+    if (user && user.role === 'BOT') {
+        return res.redirect(process.env.BASE_URL + '/assets/art/RazonBOT.png');
+    }
+
     const cached = cachedImgs[userId];
     if (cached) return res.redirect(cached.url);
 

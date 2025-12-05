@@ -6,11 +6,12 @@ async function createBots() {
     
     try {
         const botNames = [
-            'BotPlayer1',
-            'BotPlayer2', 
-            'BotPlayer3',
-            'BotPlayer4',
-            'BotPlayer5'
+            'JeroldBOT',
+            'TimmyBOT', 
+            'DanielBOT',
+            'RaymondBOT',
+            'EdwinBOT',
+            'CoinflipBOT'
         ];
         
         for (let i = 0; i < botNames.length; i++) {
