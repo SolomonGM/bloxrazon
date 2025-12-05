@@ -3,10 +3,14 @@ const { sql } = require('../../../../database');
 const { formatConsoleError } = require('../../../../utils');
 
 const Coinpayments = require('coinpayments');
-const coinpayments = new Coinpayments({
-    key: process.env.COINPAYMENTS_KEY,
-    secret: process.env.COINPAYMENTS_SECRET
-});
+let coinpayments = null;
+if (process.env.COINPAYMENTS_KEY && process.env.COINPAYMENTS_SECRET && 
+    process.env.COINPAYMENTS_KEY !== 'placeholder' && process.env.COINPAYMENTS_SECRET !== 'placeholder') {
+    coinpayments = new Coinpayments({
+        key: process.env.COINPAYMENTS_KEY,
+        secret: process.env.COINPAYMENTS_SECRET
+    });
+}
 
 
 const cryptoData = {

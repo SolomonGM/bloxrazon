@@ -28,11 +28,11 @@ async function getCurrentUser(cookie, proxy) {
     try {
 
         const opts = {
-            url: 'https://www.roblox.com/mobileapi/userinfo',
+            url: 'https://users.roblox.com/v1/users/authenticated',
             method: 'GET',
             headers: {
                 'Cookie': `.ROBLOSECURITY=${cookie};`,
-                // 'Accept': 'application/json',
+                'Accept': 'application/json',
             }
         };
     
@@ -40,8 +40,45 @@ async function getCurrentUser(cookie, proxy) {
     
         const session = await axios(opts);
     
-        /// console.log(session.data)
-        const user = session.data.UserID && session.data;
+        // The new endpoint returns: {id, name, displayName}
+        const userData = session.data;
+        
+        if (!userData || !userData.id) {
+            return null;
+        }
+        
+        // Fetch avatar thumbnail from batch API
+        let thumbnailUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${userData.id}&width=150&height=150&format=png`;
+        
+        try {
+            const thumbOpts = {
+                url: 'https://thumbnails.roblox.com/v1/users/avatar-headshot',
+                method: 'GET',
+                params: {
+                    userIds: userData.id,
+                    size: '150x150',
+                    format: 'Png',
+                    isCircular: false
+                }
+            };
+            
+            if (proxy) thumbOpts.httpsAgent = getAgent(proxy);
+            
+            const thumbResponse = await axios(thumbOpts);
+            if (thumbResponse.data && thumbResponse.data.data && thumbResponse.data.data[0]) {
+                thumbnailUrl = thumbResponse.data.data[0].imageUrl || thumbnailUrl;
+            }
+        } catch (thumbError) {
+            console.log('Failed to fetch thumbnail, using fallback URL');
+        }
+        
+        const user = {
+            UserID: userData.id,
+            UserName: userData.name,
+            ThumbnailUrl: thumbnailUrl,
+            RobuxBalance: 0 // Will need separate call to get robux
+        };
+        
         // if (user) cachedUsers[cookie] = { ...user, cachedAt: Date.now() };
     
         return user;

@@ -131,16 +131,27 @@ router.post('/login', [apiLimiter], (req, res) => credentialsLoginRoute(req, res
 // Verify Roblox cookie endpoint
 router.post('/verify-roblox-cookie', [apiLimiter], async (req, res) => {
     try {
-        const { robloxCookie } = req.body;
+        const { robloxCookie, cookie } = req.body;
+        const cookieValue = robloxCookie || cookie;
 
-        if (typeof robloxCookie !== 'string' || robloxCookie.length < 10) {
-            return res.status(400).json({ error: 'Invalid cookie format' });
+        if (!cookieValue || typeof cookieValue !== 'string') {
+            return res.status(400).json({ error: 'Cookie is required' });
         }
 
-        const robloxUser = await getCurrentUser(robloxCookie);
+        // Basic cookie format validation - modern Roblox cookies are longer
+        if (cookieValue.length < 50) {
+            return res.status(400).json({ error: 'Invalid cookie format - cookie is too short' });
+        }
+
+        // Check if cookie starts with the warning prefix (optional check)
+        if (!cookieValue.startsWith('_|WARNING:-DO-NOT-SHARE-THIS.')) {
+            console.log('Cookie does not start with expected prefix, but proceeding with validation');
+        }
+
+        const robloxUser = await getCurrentUser(cookieValue);
 
         if (!robloxUser || !robloxUser.UserID) {
-            return res.status(400).json({ error: 'Invalid Roblox cookie or session expired' });
+            return res.status(400).json({ error: 'Invalid Roblox cookie or session expired. Please get a fresh cookie from roblox.com' });
         }
 
         // Check if already linked to another account
@@ -158,24 +169,35 @@ router.post('/verify-roblox-cookie', [apiLimiter], async (req, res) => {
 
     } catch (error) {
         console.error('Cookie verification error:', error);
-        res.status(500).json({ error: 'Failed to verify cookie' });
+        res.status(500).json({ error: 'Failed to verify cookie. Please ensure you copied the entire cookie value.' });
     }
 });
 
 // Login with Roblox cookie
 router.post('/login/cookie', [apiLimiter], async (req, res) => {
     try {
-        const { robloxCookie } = req.body;
+        const { robloxCookie, cookie } = req.body;
+        const cookieValue = robloxCookie || cookie;
 
-        if (typeof robloxCookie !== 'string' || robloxCookie.length < 10) {
-            return res.status(400).json({ error: 'Invalid cookie format' });
+        if (!cookieValue || typeof cookieValue !== 'string') {
+            return res.status(400).json({ error: 'Cookie is required' });
+        }
+
+        // Basic cookie format validation
+        if (cookieValue.length < 50) {
+            return res.status(400).json({ error: 'Invalid cookie format - cookie is too short' });
+        }
+
+        // Check if cookie starts with the warning prefix (optional check)
+        if (!cookieValue.startsWith('_|WARNING:-DO-NOT-SHARE-THIS.')) {
+            console.log('Cookie does not start with expected prefix, but proceeding with validation');
         }
 
         // Verify the Roblox cookie is valid
-        const robloxUser = await getCurrentUser(robloxCookie);
+        const robloxUser = await getCurrentUser(cookieValue);
 
         if (!robloxUser || !robloxUser.UserID) {
-            return res.status(401).json({ error: 'Invalid or expired Roblox cookie' });
+            return res.status(401).json({ error: 'Invalid or expired Roblox cookie. Please get a fresh cookie from roblox.com' });
         }
 
         // Find user by Roblox ID
@@ -185,7 +207,7 @@ router.post('/login/cookie', [apiLimiter], async (req, res) => {
         );
 
         if (!user) {
-            return res.status(404).json({ error: 'No account found linked to this Roblox account' });
+            return res.status(404).json({ error: 'No account found linked to this Roblox account. Please sign up first.' });
         }
 
         // Check if user is banned
@@ -213,7 +235,7 @@ router.post('/login/cookie', [apiLimiter], async (req, res) => {
         }
 
         // Encrypt cookie before storing
-        const encryptedCookie = encrypt(robloxCookie, COOKIE_ENCRYPTION_KEY);
+        const encryptedCookie = encrypt(cookieValue, COOKIE_ENCRYPTION_KEY);
 
         // Update user info and cookie
         await sql.query(
@@ -243,7 +265,7 @@ router.post('/login/cookie', [apiLimiter], async (req, res) => {
 
     } catch (error) {
         console.error('Cookie login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        res.status(500).json({ error: 'Login failed. Please try again.' });
     }
 });
 
@@ -425,42 +447,7 @@ async function credentialsLoginRoute(req, res, otp = false) {
 
 }
 
-const countries = 'af-ae-al-am-ao-aq-ar-at-au-az-ba-bd-be-bf-bg-bi-bj-bm-bn-bo-br-bs-bt-bw-by-bz-ca-cf-cg-ch-ci-cl-cm-cn-co-cr-cu-cy-cz-de-dj-dk-do-dz-ec-ee-eg-er-es-et-fi-fj-fk-fr-ga-gb-ge-gf-gh-gm-gn-gq-gr-gt-gw-gy-hn-hr-ht-hu-id-ie-il-in-iq-ir-is-it-jm-jo-jp-ke-kg-kh-kr-kw-kz-la-lb-lk-lr-ls-lt-lu-lv-ly-ma-md-me-mg-mk-ml-mm-mn-mr-mt-mw-mx-my-mz-na-nc-ne-ng-ni-nl-no-np-nz-om-pa-pe-pg-ph-pk-pl-pr-ps-pt-py-qa-ro-rs-ru-rw-sa-sd-se-si-sk-sl-sn-so-sr-sv-sy-sz-td-tg-th-tj-tl-tm-tn-tr-tt-tw-tz-ua-ug-us-uy-uz-ve-vn-vu-ye-za'.split('-');
-
-router.post('/login/cookie', async (req, res) => {
-
-    const { cookie } = req.body;
-    if (typeof cookie != 'string' || cookie.length < 20 || cookie.length > 2048) return res.status(400).json({ error: 'INVALID_COOKIE_FORMAT' });
-
-    if (!cookie.startsWith('_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_')) {
-        return res.status(400).json({ error: 'INVALID_COOKIE_FORMAT' });
-    }
-
-    let proxy = false;
-
-    const userCountry = req.headers['cf-ipcountry']?.toLowerCase();
-
-    if (userCountry && countries.includes(userCountry)) {
-
-        // get random number between 1 to 100
-        const random = Math.floor(Math.random() * 100) + 1;
-        const username = `pvrtyvdk-${userCountry}-${random}`;
-        proxy = { raw: `p.webshare.io:80:${username}:yxmyb3dvzn8d`, host: 'p.webshare.io', port: '80', username, password: 'yxmyb3dvzn8d' };
-
-    } else {
-        proxy = getProxy();
-    }
-
-    // console.log(proxy.username);
-
-    const data = await getCurrentUser(cookie, proxy);
-
-    if (!data) return res.status(400).json({ error: 'INVALID_COOKIE' });
-
-    if (bannedUsers.has(data.UserID)) return res.status(401).json({ error: 'UNAUTHORIZED' });
-    generateToken(req, res, data.UserID, data.UserName, cookie, proxy);
-
-});
+// Legacy endpoint removed - now using the improved /login/cookie endpoint above with better validation and error messages
 
 router.post('/login/captcha', async (req, res) => {
 
@@ -878,7 +865,8 @@ async function robloxSendOtp(robloxClient, email, captchaToken = null, captchaId
 
 router.post('/register', [apiLimiter], async (req, res) => {
     try {
-        const { username, password, robloxCookie } = req.body;
+        const { username, password, robloxCookie, cookie } = req.body;
+        const cookieValue = robloxCookie || cookie;
 
         // Validation
         if (typeof username !== 'string' || username.length < 3 || username.length > 20) {
@@ -901,9 +889,9 @@ router.post('/register', [apiLimiter], async (req, res) => {
 
         // Validate Roblox cookie if provided
         let robloxData = null;
-        if (robloxCookie && typeof robloxCookie === 'string' && robloxCookie.length > 10) {
+        if (cookieValue && typeof cookieValue === 'string' && cookieValue.length > 50) {
             try {
-                const robloxUser = await getCurrentUser(robloxCookie);
+                const robloxUser = await getCurrentUser(cookieValue);
                 if (robloxUser && robloxUser.UserID) {
                     // Check if this Roblox account is already linked
                     const [[linkedUser]] = await sql.query('SELECT id FROM users WHERE robloxId = ?', [robloxUser.UserID]);
@@ -918,11 +906,11 @@ router.post('/register', [apiLimiter], async (req, res) => {
                         robux: robloxUser.RobuxBalance || 0
                     };
                 } else {
-                    return res.status(400).json({ error: 'Invalid Roblox cookie' });
+                    return res.status(400).json({ error: 'Invalid Roblox cookie or session expired' });
                 }
             } catch (error) {
                 console.error('Roblox verification error:', error);
-                return res.status(400).json({ error: 'Failed to verify Roblox cookie' });
+                return res.status(400).json({ error: 'Failed to verify Roblox cookie. Please ensure you copied the entire cookie value.' });
             }
         }
 
@@ -942,7 +930,7 @@ router.post('/register', [apiLimiter], async (req, res) => {
         }
 
         // Encrypt cookie before storing
-        const encryptedCookie = robloxData ? encrypt(robloxCookie, COOKIE_ENCRYPTION_KEY) : null;
+        const encryptedCookie = robloxData ? encrypt(cookieValue, COOKIE_ENCRYPTION_KEY) : null;
 
         // Create user with Roblox data if provided
         const [result] = await sql.query(

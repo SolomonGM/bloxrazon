@@ -43,6 +43,14 @@ function NavBar(props) {
                                 </svg>
                             </button>
 
+                            <button class='hamburger-toggle-btn' onClick={() => setHamburgerOpen(!hamburgerOpen())}>
+                                <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="20" height="2" rx="1" fill="currentColor"/>
+                                    <rect y="7" width="20" height="2" rx="1" fill="currentColor"/>
+                                    <rect y="14" width="20" height="2" rx="1" fill="currentColor"/>
+                                </svg>
+                            </button>
+
                             <div class='links'>
                                 <button class='bevel-gold home'>
                                     <A href='/' class='gamemode-link'></A>
@@ -173,6 +181,8 @@ function NavBar(props) {
                 <BottomNavBar chat={props.chat} setChat={props.setChat}/>
             </div>
 
+            <HamburgerMenu active={hamburgerOpen()} setActive={setHamburgerOpen}/>
+
             <style jsx>{`
               .navbar-container {
                 width: 100%;
@@ -228,6 +238,24 @@ function NavBar(props) {
               }
 
               .sidebar-toggle-btn:hover {
+                color: white;
+                background: rgba(255, 255, 255, 0.05);
+              }
+
+              .hamburger-toggle-btn {
+                background: transparent;
+                border: none;
+                color: #9A90D1;
+                cursor: pointer;
+                padding: 8px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                border-radius: 6px;
+              }
+
+              .hamburger-toggle-btn:hover {
                 color: white;
                 background: rgba(255, 255, 255, 0.05);
               }
@@ -647,6 +675,14 @@ function NavBar(props) {
 
                 .logo-wrapper, .user-dropdown-minified {
                   display: block;
+                }
+
+                .sidebar-toggle-btn {
+                  display: none;
+                }
+
+                .hamburger-toggle-btn {
+                  display: flex;
                 }
 
                 .balance-container {

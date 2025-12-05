@@ -103,13 +103,14 @@ function Footer(props) {
                 height: fit-content;
 
                 box-sizing: border-box;
-                padding: 50px 50px 25px 50px;
+                padding: 50px 50px 0 50px;
                 
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 
                 background: linear-gradient(180deg, #1F1D3A 0%, #1F1B40 129.86%);
+                margin: 0;
               }
               
               .links-section, .disclaimer {
@@ -122,11 +123,12 @@ function Footer(props) {
               
               .disclaimer {
                 margin-top: 45px;
+                margin-bottom: 0;
                 
                 border-radius: 7px;
                 background: linear-gradient(277deg, rgba(97, 89, 176, 0.10) -69.8%, rgba(67, 55, 141, 0.10) 144.89%);
                 
-                padding: 15px 20px;
+                padding: 15px 20px 25px 20px;
                 
                 color: #ADA3EF;
                 font-family: Geogrotesque Wide, sans-serif;

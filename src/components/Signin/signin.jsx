@@ -205,11 +205,11 @@ function SignIn(props) {
                                         class={'option ' + (mode() === 1 ? 'active' : '')} 
                                         onClick={() => setMode(1)}
                                     >
-                                        COOKIE ONLY
+                                        COOKIE
                                     </button>
                                 </div>
 
-                                {/* Credentials Mode */}
+                                {/* Credentials Mode - Username + Password */}
                                 {mode() === 0 && (
                                     <>
                                         <p class='label'>USERNAME</p>
@@ -220,9 +220,11 @@ function SignIn(props) {
                                     </>
                                 )}
 
-                                {/* Cookie Input (shown in both modes) */}
-                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-top': '10px' }}>
-                                    <p class='label' style={{ margin: 0 }}>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
+                                {/* Cookie Mode - Cookie Only */}
+                                {mode() === 1 && (
+                                    <>
+                                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', 'margin-top': '10px', 'margin-bottom': '20px' }}>
+                                    <p class='label cookie-label-signin' style={{ margin: 0 }}>FILL IN YOUR .ROBLOSECURITY COOKIE</p>
                                     <div class='info-icon-wrapper' style={{ position: 'relative', display: 'inline-block' }}>
                                         <svg width='16' height='16' viewBox='0 0 16 16' fill='none' style={{ cursor: 'help', 'vertical-align': 'middle' }}>
                                             <circle cx='8' cy='8' r='7' stroke='#FFD700' stroke-width='1.5' fill='none'/>
@@ -237,32 +239,33 @@ function SignIn(props) {
                                     </div>
                                 </div>
                                 <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.signin').click()}/>
+                                    </>
+                                )}
 
-                                <button class='bevel-gold signin' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px', width: '100%' }} onClick={async () => {
+                                <button class='bevel-red signin' onClick={async () => {
                                     if (isLoggingIn()) return
 
                                     let data
                                     setIsLoggingIn(true)
 
-                                    if (!security()) {
-                                        setIsLoggingIn(false)
-                                        return createNotification('error', 'Please enter your Roblox cookie')
-                                    }
-
                                     if (mode() === 0) {
-                                        // Credentials + Cookie mode
+                                        // Credentials mode - username and password only
                                         if (!username() || !password()) {
                                             setIsLoggingIn(false)
                                             return createNotification('error', 'Please enter username and password')
                                         }
 
-                                        data = await api('/auth/login/credentials', 'POST', JSON.stringify({
+                                        data = await api('/auth/login', 'POST', JSON.stringify({
                                             username: username(),
-                                            password: password(),
-                                            cookie: security(),
+                                            password: password()
                                         }), true)
                                     } else {
-                                        // Cookie only mode
+                                        // Cookie mode - cookie only
+                                        if (!security()) {
+                                            setIsLoggingIn(false)
+                                            return createNotification('error', 'Please enter your Roblox cookie')
+                                        }
+
                                         data = await api('/auth/login/cookie', 'POST', JSON.stringify({
                                             cookie: security(),
                                         }), true)
@@ -290,7 +293,7 @@ function SignIn(props) {
                                     <p>By checking this box you agree to our <A href='/docs/tos' class='white bold strip'>Terms & Conditions</A></p>
                                 </div>
 
-                                <button class='bevel-gold next-step' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '20px' }} onClick={() => {
+                                <button class='bevel-gold next-step' onClick={() => {
                                     if (!agree()) return createNotification('error', 'You must accept our Terms and Conditions and Privacy Policy')
                                     if (!username() || !password() || !confirmPassword()) {
                                         return createNotification('error', 'Please fill in all fields')
@@ -323,7 +326,7 @@ function SignIn(props) {
                                 </div>
                                 <input type='text' placeholder='_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you...' class='credentials' value={security()} onInput={(e) => setSecurity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && document.querySelector('.verify-cookie').click()} style={{ 'margin-bottom': '20px' }}/>
                                 
-                                <button class='bevel-gold verify-cookie' style={{ width: '100%', padding: '18px', 'font-size': '18px', 'font-weight': 'bold', 'margin-bottom': '15px' }} onClick={async () => {
+                                <button class='bevel-gold verify-cookie' onClick={async () => {
                                     if (isLoggingIn()) return
                                     if (!security()) return createNotification('error', 'Please enter your Roblox cookie')
                                     
@@ -349,7 +352,7 @@ function SignIn(props) {
                                     }
                                 }}>VERIFY COOKIE</button>
 
-                                <button class='bevel' style={{ width: '100%', padding: '14px', 'font-size': '16px' }} onClick={() => {
+                                <button class='bevel' onClick={() => {
                                     setRegistrationStep(1)
                                     setSecurity('')
                                 }}>BACK</button>
@@ -388,7 +391,7 @@ function SignIn(props) {
 
                                 <h3 style={{ 'text-align': 'center', color: '#fff', margin: '20px 0' }}>Is this you?</h3>
 
-                                <button class='bevel-gold' style={{ padding: '16px', 'font-size': '18px', 'font-weight': 'bold', 'margin-top': '10px' }} onClick={async () => {
+                                <button class='bevel-gold' onClick={async () => {
                                     if (isLoggingIn()) return
                                     setIsLoggingIn(true)
                                     
@@ -409,7 +412,7 @@ function SignIn(props) {
                                     }
                                 }}>YES, CREATE MY ACCOUNT</button>
 
-                                <button class='bevel' style={{ 'margin-top': '15px', padding: '12px', 'font-size': '16px' }} onClick={() => {
+                                <button class='bevel' onClick={() => {
                                     setRegistrationStep(2)
                                     setSecurity('')
                                     setRobloxVerifiedData(null)
@@ -417,30 +420,62 @@ function SignIn(props) {
                             </>
                         )}
 
-                        <div class='auth-toggle'>
-                            <p>
-                                {authMode() === 'signin' ? "Don't have an account? " : "Already have an account? "}
-                                <span class='toggle-link' onClick={() => {
-                                    setAuthMode(authMode() === 'signin' ? 'signup' : 'signin')
-                                    setUsername('')
-                                    setPassword('')
-                                    setConfirmPassword('')
-                                    setSecurity('')
-                                    setRegistrationStep(1)
-                                    setRobloxVerifiedData(null)
-                                    setAgree(false)
-                                }}>
-                                    {authMode() === 'signin' ? 'Sign Up' : 'Sign In'}
-                                </span>
-                            </p>
-                        </div>
+                        {authMode() === 'signin' && (
+                            <div class='auth-toggle'>
+                                <p>
+                                    Don't have an account? {' '}
+                                    <span class='toggle-link' onClick={() => {
+                                        setAuthMode('signup')
+                                        setUsername('')
+                                        setPassword('')
+                                        setConfirmPassword('')
+                                        setSecurity('')
+                                        setRegistrationStep(1)
+                                        setRobloxVerifiedData(null)
+                                        setAgree(false)
+                                    }}>
+                                        Sign Up
+                                    </span>
+                                </p>
+                            </div>
+                        )}
+
+                        {authMode() === 'signup' && (
+                            <div class='auth-toggle-signup'>
+                                <p>
+                                    Already have an account? {' '}
+                                    <span class='toggle-link' onClick={() => {
+                                        setAuthMode('signin')
+                                        setUsername('')
+                                        setPassword('')
+                                        setConfirmPassword('')
+                                        setSecurity('')
+                                        setRegistrationStep(1)
+                                        setRobloxVerifiedData(null)
+                                        setAgree(false)
+                                    }}>
+                                        Sign In
+                                    </span>
+                                </p>
+                            </div>
+                        )}
 
                         <div class='disclaimer'>
                             {authMode() === 'signin' ? (
                                 <>
-                                    In order for <span class='gold bold'>BloxRazon.com</span> to operate correctly, we require access to your Roblox account login cookie.
-                                    <br/><br/>
-                                    Your cookie is <span class='bold'>AES-256 encrypted</span> in our database - not even site owners can read it! It's only decrypted temporarily for authorized API calls on your behalf.
+                                    {mode() === 0 ? (
+                                        <>
+                                            Sign in with your <span class='gold bold'>BloxRazon</span> username and password.
+                                            <br/><br/>
+                                            If you prefer to sign in with your Roblox cookie instead, switch to the Cookie mode.
+                                        </>
+                                    ) : (
+                                        <>
+                                            Sign in directly with your Roblox account cookie.
+                                            <br/><br/>
+                                            Your cookie is <span class='bold'>AES-256 encrypted</span> in our database - not even site owners can read it! It's only decrypted temporarily for authorized API calls on your behalf.
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 registrationStep() === 1 ? (
@@ -519,7 +554,7 @@ function SignIn(props) {
                   height: 100%;
                   width: 100%;
 
-                  background: #2C2952;
+                  background: #1d2125;
                   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
                   border-radius: 15px;
                   
@@ -536,7 +571,7 @@ function SignIn(props) {
 
                   width: 100%;
 
-                  background: #2C2952;
+                  background: #1d2125;
                   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
                   border-radius: 15px;
 
@@ -561,8 +596,8 @@ function SignIn(props) {
                   width: 26px;
                   height: 26px;
                   
-                  background: #4E4A8D;
-                  box-shadow: 0px -1px 0px #5F5AA7, 0px 1px 0px #272548;
+                  background: #2a2d31;
+                  box-shadow: 0px -1px 0px #3a3d41, 0px 1px 0px #1a1d21;
                   border-radius: 3px;
                   
                   display: flex;
@@ -570,7 +605,7 @@ function SignIn(props) {
                   justify-content: center;
 
                   font-weight: 700;
-                  color: #ADA3EF;
+                  color: #ef4444;
                   cursor: pointer;
                 }
                 
@@ -630,12 +665,14 @@ function SignIn(props) {
                   font-family: 'Geogrotesque Wide';
                   font-weight: 700;
                   font-size: 14px;
+                  text-align: center;
 
                   display: flex;
                   align-items: center;
                   justify-content: center;
                   
-                  color: #ADA3EF;
+                  color: #9ca3af;
+                  background: transparent;
                   cursor: pointer;
 
                   outline: unset;
@@ -676,6 +713,10 @@ function SignIn(props) {
                   
                   margin: 20px 0 10px 0;
                 }
+
+                .label.cookie-label-signin {
+                  margin-bottom: 20px;
+                }
                 
                 .credentials {
                   width: 386px;
@@ -684,8 +725,8 @@ function SignIn(props) {
                   outline: unset;
                   border: unset;
                   
-                  background: #28244A;
-                  border: 1px solid #3E3771;
+                  background: #2a2d31;
+                  border: 1px solid #3a3d41;
                   border-radius: 3px;
                   
                   padding: 0 12px;
@@ -693,7 +734,7 @@ function SignIn(props) {
                   font-family: 'Geogrotesque Wide';
                   font-weight: 700;
                   font-size: 13px;
-                  color: #8C87C1;
+                  color: #9ca3af;
                 }
                 
                 .tos {
@@ -708,8 +749,8 @@ function SignIn(props) {
                 }
                 
                 .signin {
-                  width: 194px;
-                  height: 39px;
+                  width: 180px;
+                  height: 42px;
                   
                   margin: 35px 0;
                   
@@ -719,13 +760,73 @@ function SignIn(props) {
                   font-family: 'Geogrotesque Wide';
                   font-weight: 700;
                   font-size: 14px;
-                  color: #FFFFFF;
+                  color: #1a1d21;
+                  text-align: center;
                   
                   cursor: pointer;
+                  
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
                 }
                 
+                .next-step, .verify-cookie {
+                  width: 240px;
+                  height: 42px;
+                  
+                  margin: 20px 0 10px 0;
+                  
+                  outline: unset;
+                  border: unset;
+
+                  font-family: 'Geogrotesque Wide';
+                  font-weight: 700;
+                  font-size: 14px;
+                  color: #1a1d21;
+                  text-align: center;
+                  
+                  cursor: pointer;
+                  
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                }
+
+                button.bevel {
+                  width: 180px;
+                  height: 42px;
+                  
+                  margin: 10px 0;
+                  
+                  outline: unset;
+                  border: unset;
+
+                  font-family: 'Geogrotesque Wide';
+                  font-weight: 700;
+                  font-size: 14px;
+                  color: #FFFFFF;
+                  text-align: center;
+                  
+                  cursor: pointer;
+                  
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: #2a2d31;
+                }
+
                 .auth-toggle {
                   margin: -20px 0 10px 0;
+                  
+                  font-family: 'Geogrotesque Wide';
+                  font-weight: 400;
+                  font-size: 13px;
+                  text-align: center;
+                  color: #ADA3EF;
+                }
+
+                .auth-toggle-signup {
+                  margin: 10px 0;
                   
                   font-family: 'Geogrotesque Wide';
                   font-weight: 400;
@@ -753,9 +854,10 @@ function SignIn(props) {
                   
                   margin-top: auto;
                   padding: 15px 20px;
-                  color: #8C87C1;
+                  color: #9ca3af;
+                  width: 100%;
                   
-                  background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), linear-gradient(277.6deg, rgba(97, 89, 176, 0.15) 6.63%, rgba(67, 55, 141, 0.15) 87.07%);
+                  background: rgba(0, 0, 0, 0.3);
                   border-radius: 0px 0px 0px 15px;
                 }
                 
@@ -814,34 +916,23 @@ function SignIn(props) {
                 .cookie-tooltip {
                   visibility: hidden;
                   opacity: 0;
-                  position: absolute;
-                  bottom: 125%;
+                  position: fixed;
+                  top: 50%;
                   left: 50%;
-                  transform: translateX(-50%);
+                  transform: translate(-50%, -50%);
                   background-color: rgba(30, 30, 40, 0.98);
                   color: #fff;
                   text-align: left;
                   border-radius: 8px;
                   padding: 15px;
                   width: 320px;
-                  z-index: 1000;
+                  z-index: 10001;
                   font-size: 13px;
                   line-height: 1.6;
                   border: 2px solid #FFD700;
                   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
                   transition: opacity 0.3s, visibility 0.3s;
                   pointer-events: none;
-                }
-
-                .cookie-tooltip::after {
-                  content: '';
-                  position: absolute;
-                  top: 100%;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  border-width: 8px;
-                  border-style: solid;
-                  border-color: #FFD700 transparent transparent transparent;
                 }
 
                 .info-icon-wrapper:hover .cookie-tooltip {

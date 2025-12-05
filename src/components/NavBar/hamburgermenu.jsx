@@ -7,6 +7,12 @@ function HamburgerMenu(props) {
 
     return (
         <>
+            {/* Overlay */}
+            <div 
+                class={'hamburger-overlay ' + (props.active ? 'active' : '')} 
+                onClick={() => props.setActive(false)}
+            />
+            
             <div class={'hamburger-menu ' + (props.active ? 'active' : '')}>
                 <div class='menu-header'>
                     <div class='logo-section'>
@@ -250,18 +256,37 @@ function HamburgerMenu(props) {
             </div>
 
             <style jsx>{`
-                .hamburger-menu {
+                .hamburger-overlay {
                     position: fixed;
                     top: 0;
                     left: 0;
-                    width: 280px;
+                    width: 100vw;
                     height: 100vh;
-                    background: linear-gradient(180deg, #1F1D3A 0%, #18162D 100%);
-                    border-right: 1px solid rgba(239, 68, 68, 0.15);
-                    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
-                    z-index: 1001;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(4px);
+                    z-index: 998;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .hamburger-overlay.active {
+                    opacity: 1;
+                    pointer-events: all;
+                }
+
+                .hamburger-menu {
+                    position: fixed;
+                    top: 60px;
+                    left: 0;
+                    width: 320px;
+                    height: calc(100vh - 60px);
+                    background: #1d2125;
+                    border-right: 1px solid rgba(139, 92, 246, 0.15);
+                    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
+                    z-index: 999;
                     transform: translateX(-100%);
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
@@ -276,18 +301,18 @@ function HamburgerMenu(props) {
                     align-items: center;
                     justify-content: space-between;
                     padding: 20px;
-                    border-bottom: 1px solid rgba(239, 68, 68, 0.1);
-                    background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, transparent 100%);
+                    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+                    background: linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, transparent 100%);
                 }
 
                 .logo-section img {
-                    filter: drop-shadow(0 2px 8px rgba(239, 68, 68, 0.3));
+                    filter: drop-shadow(0 2px 8px rgba(255, 190, 24, 0.3));
                 }
 
                 .close-btn {
-                    background: rgba(239, 68, 68, 0.1);
-                    border: 1px solid rgba(239, 68, 68, 0.2);
-                    color: #EF4444;
+                    background: rgba(139, 92, 246, 0.1);
+                    border: 1px solid rgba(139, 92, 246, 0.2);
+                    color: #ADA3EF;
                     cursor: pointer;
                     padding: 0;
                     display: flex;
@@ -300,14 +325,15 @@ function HamburgerMenu(props) {
                 }
 
                 .close-btn:hover {
-                    background: rgba(239, 68, 68, 0.2);
-                    border-color: rgba(239, 68, 68, 0.4);
+                    background: rgba(139, 92, 246, 0.2);
+                    border-color: rgba(139, 92, 246, 0.4);
+                    color: #8B5CF6;
                     transform: rotate(90deg);
                 }
 
                 .menu-content {
                     flex: 1;
-                    padding: 0;
+                    padding: 8px 0;
                     overflow-y: auto;
                 }
 
@@ -316,16 +342,16 @@ function HamburgerMenu(props) {
                 }
 
                 .menu-content::-webkit-scrollbar-track {
-                    background: transparent;
+                    background: rgba(0, 0, 0, 0.2);
                 }
 
                 .menu-content::-webkit-scrollbar-thumb {
-                    background: rgba(239, 68, 68, 0.2);
+                    background: rgba(139, 92, 246, 0.3);
                     border-radius: 3px;
                 }
 
                 .menu-content::-webkit-scrollbar-thumb:hover {
-                    background: rgba(239, 68, 68, 0.3);
+                    background: rgba(139, 92, 246, 0.5);
                 }
 
                 .menu-section {
@@ -334,11 +360,11 @@ function HamburgerMenu(props) {
 
                 .section-label {
                     padding: 12px 20px 8px;
-                    color: rgba(255, 255, 255, 0.35);
+                    color: rgba(173, 163, 239, 0.5);
                     font-family: 'Geogrotesque Wide', sans-serif;
-                    font-size: 10px;
-                    font-weight: 800;
-                    letter-spacing: 1.5px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 1.2px;
                     text-transform: uppercase;
                 }
 
@@ -346,9 +372,9 @@ function HamburgerMenu(props) {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    padding: 14px 20px;
-                    margin: 2px 0;
-                    color: rgba(255, 255, 255, 0.85);
+                    padding: 12px 20px;
+                    margin: 1px 8px;
+                    color: #ADA3EF;
                     font-family: 'Geogrotesque Wide', sans-serif;
                     font-size: 14px;
                     font-weight: 600;
@@ -357,17 +383,20 @@ function HamburgerMenu(props) {
                     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     background: transparent;
                     border: none;
-                    border-left: 3px solid transparent;
-                    width: 100%;
+                    border-radius: 8px;
+                    width: calc(100% - 16px);
                     text-align: left;
                     position: relative;
                 }
 
                 .menu-item:hover {
                     color: #FFFFFF;
-                    background: rgba(239, 68, 68, 0.08);
-                    border-left-color: #EF4444;
-                    transform: translateX(2px);
+                    background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+                    transform: translateX(3px);
+                }
+
+                .menu-item:active {
+                    transform: translateX(1px) scale(0.98);
                 }
 
                 .menu-item-left {
@@ -377,24 +406,24 @@ function HamburgerMenu(props) {
                 }
                 
                 .nav-icon {
-                    width: 20px;
-                    height: 20px;
+                    width: 22px;
+                    height: 22px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     flex-shrink: 0;
-                    color: rgba(255, 255, 255, 0.6);
+                    color: #8C87C1;
                     transition: all 0.2s;
                 }
                 
                 .menu-item:hover .nav-icon {
-                    color: #EF4444;
+                    color: #FFBE18;
                     transform: scale(1.1);
                 }
                 
                 .nav-icon svg {
-                    width: 16px;
-                    height: 16px;
+                    width: 18px;
+                    height: 18px;
                 }
                 
                 .challenge-badge {
