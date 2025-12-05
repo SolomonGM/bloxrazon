@@ -3,7 +3,6 @@ import {createEffect, createSignal, ErrorBoundary, lazy, Suspense} from "solid-j
 import {useUser} from "./contexts/usercontextprovider";
 import Sidebar from "./components/SideBar/sidebar";
 import NavSidebar from "./components/NavBar/navsidebar";
-import NavSidebar from "./components/NavBar/navsidebar";
 import {authedAPI, closeDropdowns, createNotification} from "./util/api";
 import Navbar from "./components/NavBar/navbar";
 import {Toaster} from "solid-toast";
@@ -80,7 +79,6 @@ function App() {
   const [ws] = useWebsocket()
   const [chat, setChat] = createSignal(false)
   const [rakeback, setRakeback] = createSignal(false)
-  const [navSidebarOpen, setNavSidebarOpen] = createSignal(true)
   const [navSidebarOpen, setNavSidebarOpen] = createSignal(true)
 
   // Mutual exclusivity between chat and rakeback with proper close handling
