@@ -264,6 +264,8 @@ function SignIn(props) {
                                     }
                                     setRegistrationStep(2)
                                 }}>NEXT: CONNECT ROBLOX</button>
+                            </>
+                        )}
 
                         {/* SIGN UP MODE - STEP 2: ROBLOX COOKIE ENTRY */}
                         {authMode() === 'signup' && registrationStep() === 2 && (
