@@ -4,6 +4,7 @@ const { roundDecimal, mapUser, sendLog } = require('../utils');
 const { rains } = require('./rain');
 const { sponsorLockedUsers } = require('../routes/admin/config');
 const { cachedRakebacks } = require('../routes/user/rakeback/functions');
+const { newMessage } = require('./chat/functions');
 
 const cachedBets = {
     all: [],
@@ -124,6 +125,29 @@ async function newBets(bets) {
             luckyBets.push(bet);
             cachedBets.lucky.unshift(bet);
             if (cachedBets.lucky.length > maxLength) cachedBets.lucky.pop();
+
+            // Announce high win in chat
+            const multiplier = roundDecimal(bet.payout / bet.amount, 2);
+            const messageContent = {
+                user: mapUser(user),
+                amount: bet.amount,
+                payout: bet.payout,
+                multiplier: multiplier,
+                game: gamesNames[bet.game] || bet.game
+            };
+
+            sql.query('INSERT INTO chatMessages(type, content, senderId) VALUES (?, ?, ?)', 
+                ['high-win', JSON.stringify(messageContent), user.id]
+            ).then(([result]) => {
+                newMessage({
+                    id: result.insertId,
+                    content: messageContent,
+                    type: 'high-win',
+                    createdAt: new Date(),
+                    replyTo: null,
+                    user: mapUser(user)
+                });
+            }).catch(err => console.error('Error saving high win message:', err));
         }
 
         if (!userBets[user.id]) {

@@ -254,6 +254,25 @@ async function updateCoinflipSchemaOnStart() {
         } else {
             console.log('[MIGRATION] ✓ BOT user exists:', bots[0].username);
         }
+
+        // Rename old bot names to new format
+        console.log('[MIGRATION] Checking bot names...');
+        const botNameMapping = {
+            'BotPlayer1': 'JeroldBOT',
+            'BotPlayer2': 'TimmyBOT',
+            'BotPlayer3': 'DanielBOT',
+            'BotPlayer4': 'RaymondBOT',
+            'BotPlayer5': 'EdwinBOT',
+            'CoinflipBot': 'CoinflipBOT'
+        };
+        
+        for (const [oldName, newName] of Object.entries(botNameMapping)) {
+            const [[bot]] = await sql.query('SELECT id FROM users WHERE username = ? AND role = "BOT"', [oldName]);
+            if (bot) {
+                await sql.query('UPDATE users SET username = ? WHERE id = ?', [newName, bot.id]);
+                console.log(`[MIGRATION] ✓ Renamed ${oldName} → ${newName}`);
+            }
+        }
     } catch (error) {
         if (error.code === 'ER_DUP_FIELDNAME' || error.code === 'ER_DUP_ENTRY') {
             // Column/entry already exists, ignore

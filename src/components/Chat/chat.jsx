@@ -3,6 +3,7 @@ import ChatMessage from "./message";
 import RainEnd from "./rainend";
 import SystemMessage from "./systemmessage";
 import RainTip from "./raintip";
+import HighWin from "./highwin";
 import {useUser} from "../../contexts/usercontextprovider";
 import {addDropdown, createNotification} from "../../util/api";
 
@@ -116,6 +117,8 @@ function Chat(props) {
                     <For each={props.messages}>{(message, index) =>
                         message?.type === 'rain-end' ? (
                             <RainEnd {...message}/>
+                        ) : message?.type === 'high-win' ? (
+                            <HighWin {...message}/>
                         ) : message?.type === 'system' ? (
                             <SystemMessage {...message}/>
                         ) : message?.type === 'rain-tip' ? (
