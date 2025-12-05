@@ -499,13 +499,13 @@ function App() {
         }
 
         .center.sidebar-open {
-          margin-left: 240px;
-          width: calc(100% - 240px);
+          margin-left: 280px;
+          width: calc(100% - 280px);
         }
 
         .center.sidebar-closed {
-          margin-left: 70px;
-          width: calc(100% - 70px);
+          margin-left: 60px;
+          width: calc(100% - 60px);
         }
 
         .center::-webkit-scrollbar {

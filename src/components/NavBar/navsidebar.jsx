@@ -186,70 +186,85 @@ function NavSidebar(props) {
                 left: 0;
                 top: 60px;
                 height: calc(100vh - 60px);
-                background: linear-gradient(180deg, #1a1625 0%, #13111d 100%);
-                border-right: 1px solid rgba(139, 92, 246, 0.1);
-                transition: width 0.3s ease;
+                background: #1e1b2e;
+                border-right: 1px solid rgba(67, 56, 120, 0.3);
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 100;
                 overflow-y: auto;
                 overflow-x: hidden;
               }
 
               .nav-sidebar.collapsed {
-                width: 70px;
+                width: 60px;
               }
 
               .nav-sidebar.expanded {
-                width: 240px;
+                width: 280px;
               }
 
               .nav-sidebar::-webkit-scrollbar {
-                width: 4px;
+                width: 6px;
               }
 
               .nav-sidebar::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.2);
+                background: rgba(0, 0, 0, 0.3);
               }
 
               .nav-sidebar::-webkit-scrollbar-thumb {
-                background: rgba(139, 92, 246, 0.3);
-                border-radius: 2px;
+                background: rgba(139, 92, 246, 0.4);
+                border-radius: 3px;
+              }
+
+              .nav-sidebar::-webkit-scrollbar-thumb:hover {
+                background: rgba(139, 92, 246, 0.6);
               }
 
               .sidebar-content {
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
-                padding: 16px 8px;
+                gap: 2px;
+                padding: 12px 6px;
               }
 
               .sidebar-item {
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                padding: 12px 14px;
-                border-radius: 8px;
-                color: #9ca3af;
+                gap: 14px;
+                padding: 14px 16px;
+                border-radius: 6px;
+                color: #8C87C1;
                 text-decoration: none;
-                transition: all 0.2s ease;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 cursor: pointer;
                 white-space: nowrap;
                 position: relative;
+                font-family: 'Geogrotesque Wide', sans-serif;
+                font-size: 14px;
+                font-weight: 500;
               }
 
               .nav-sidebar.collapsed .sidebar-item {
                 justify-content: center;
-                padding: 12px;
+                padding: 14px 8px;
               }
 
               .sidebar-item:hover {
-                background: rgba(139, 92, 246, 0.1);
-                color: #a78bfa;
+                background: linear-gradient(90deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.06) 100%);
+                color: #ADA3EF;
+                transform: translateX(2px);
               }
 
               .sidebar-item.active {
-                background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
-                color: #a78bfa;
-                border-left: 3px solid #8b5cf6;
+                background: linear-gradient(90deg, rgba(255, 190, 24, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+                color: #FFBE18;
+                border-left: 3px solid #FCA31E;
+                padding-left: 13px;
+              }
+
+              .nav-sidebar.collapsed .sidebar-item.active {
+                border-left: none;
+                border-bottom: 3px solid #FCA31E;
+                padding: 14px 8px 11px;
               }
 
               .icon-wrapper {
@@ -257,30 +272,47 @@ function NavSidebar(props) {
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+              }
+
+              .icon-wrapper svg {
+                width: 20px;
+                height: 20px;
               }
 
               .label {
                 font-family: 'Geogrotesque Wide', sans-serif;
                 font-weight: 600;
                 font-size: 13px;
-                letter-spacing: 0.3px;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
               }
 
               .sidebar-divider {
                 height: 1px;
-                background: rgba(139, 92, 246, 0.1);
-                margin: 8px 0;
+                background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.2) 50%, transparent 100%);
+                margin: 10px 12px;
+              }
+
+              .nav-sidebar.collapsed .sidebar-divider {
+                margin: 10px 8px;
               }
 
               @media (max-width: 768px) {
                 .nav-sidebar {
                   transform: translateX(-100%);
+                  box-shadow: none;
                 }
                 
                 .nav-sidebar.expanded {
                   transform: translateX(0);
-                  width: 240px;
-                  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+                  width: 280px;
+                  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+                }
+                
+                .nav-sidebar.collapsed {
+                  transform: translateX(-100%);
                 }
               }
             `}</style>
